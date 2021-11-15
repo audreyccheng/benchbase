@@ -84,7 +84,7 @@ public class CloseAuctions extends Procedure {
                               Timestamp startTime, Timestamp endTime) throws SQLException {
         final Timestamp currentTime = AuctionMarkUtil.getProcTimestamp(benchmarkTimes);
         final boolean debug = LOG.isDebugEnabled();
-
+        String t = "";
         if (debug) {
             LOG.debug(String.format("startTime=%s, endTime=%s, currentTime=%s",
                     startTime, endTime, currentTime));
@@ -118,6 +118,10 @@ public class CloseAuctions extends Procedure {
                         col = 1;
                         long itemId = dueItemsTable.getLong(col++);
                         long sellerId = dueItemsTable.getLong(col++);
+
+                        // itemId and sellerId compose the primary key for items table
+                        t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, itemId, sellerId);
+
                         String i_name = dueItemsTable.getString(col++);
                         double currentPrice = dueItemsTable.getDouble(col++);
                         long numBids = dueItemsTable.getLong(col++);
@@ -141,12 +145,14 @@ public class CloseAuctions extends Procedure {
                             param = 1;
                             maxBidStmt.setLong(param++, itemId);
                             maxBidStmt.setLong(param++, sellerId);
+                            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, itemId, sellerId);
+
                             try (ResultSet maxBidResults = maxBidStmt.executeQuery()) {
                                 adv = maxBidResults.next();
 
-
                                 col = 1;
                                 bidId = maxBidResults.getLong(col++);
+                                t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, bidId, itemId, sellerId);
                                 buyerId = maxBidResults.getLong(col++);
                                 try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, insertUserItem, buyerId, itemId, sellerId, currentTime)) {
                                     preparedStatement.executeUpdate();
@@ -163,6 +169,7 @@ public class CloseAuctions extends Procedure {
 
                         // Update Status!
                         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateItemStatus, itemStatus.ordinal(), currentTime, itemId, sellerId)) {
+                            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, itemId, sellerId);
                             preparedStatement.executeUpdate();
                         }
                         if (debug) {
@@ -192,6 +199,7 @@ public class CloseAuctions extends Procedure {
             LOG.debug(String.format("Updated Auctions - Closed=%d / Waiting=%d", closed_ctr, waiting_ctr));
         }
 
+        System.out.format("%s\n", t.substring(1));
         return (output_rows);
     }
 }

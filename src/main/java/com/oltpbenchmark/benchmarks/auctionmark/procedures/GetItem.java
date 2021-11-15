@@ -44,7 +44,7 @@ public class GetItem extends Procedure {
     );
 
     public final SQLStmt getUser = new SQLStmt(
-            "SELECT u_id, u_rating, u_created, u_sattr0, u_sattr1, u_sattr2, u_sattr3, u_sattr4, r_name " +
+            "SELECT u_id, u_rating, u_created, u_sattr0, u_sattr1, u_sattr2, u_sattr3, u_sattr4, r_name, r_id " +
                     "  FROM " + AuctionMarkConstants.TABLENAME_USERACCT + ", " +
                     AuctionMarkConstants.TABLENAME_REGION +
                     " WHERE u_id = ? AND u_r_id = r_id"
@@ -58,7 +58,9 @@ public class GetItem extends Procedure {
                           long item_id, long seller_id) throws SQLException {
 
         Object[] item_row = null;
+        String t = "";
         try (PreparedStatement item_stmt = this.getPreparedStatement(conn, getItem, item_id, seller_id)) {
+            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             try (ResultSet item_results = item_stmt.executeQuery()) {
                 if (!item_results.next()) {
                     throw new UserAbortException("Invalid item " + item_id);
@@ -69,14 +71,17 @@ public class GetItem extends Procedure {
 
         Object[] user_row = null;
         try (PreparedStatement user_stmt = this.getPreparedStatement(conn, getUser, seller_id)) {
+            t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, seller_id);
             try (ResultSet user_results = user_stmt.executeQuery()) {
                 if (!user_results.next()) {
                     throw new UserAbortException("Invalid user id " + seller_id);
                 }
                 user_row = SQLUtil.getRowAsArray(user_results);
+                t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_REGION, SQLUtil.getLong(user_row[9]));
             }
         }
 
+        System.out.format("%s\n", t.substring(1));
         return (new Object[][]{item_row, user_row});
     }
 
