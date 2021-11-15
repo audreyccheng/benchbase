@@ -76,10 +76,13 @@ public class NewFeedback extends Procedure {
     public void run(Connection conn, Timestamp[] benchmarkTimes,
                     long user_id, long i_id, long seller_id, long from_id, long rating, String comment) throws SQLException {
         final Timestamp currentTime = AuctionMarkUtil.getProcTimestamp(benchmarkTimes);
+        String t = "";
 
         // Check to make sure they're not trying to add feedback
         // twice for the same ITEM
+        
         try (PreparedStatement stmt = this.getPreparedStatement(conn, checkUserFeedback, user_id, i_id, seller_id, from_id)) {
+            t += "," + String.format("%s:%d:%d:%d:%d", AuctionMarkConstants.TABLENAME_USERACCT_FEEDBACK, user_id, i_id, seller_id, from_id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     throw new UserAbortException("Trying to add feedback for item " + i_id + " twice");
@@ -96,8 +99,12 @@ public class NewFeedback extends Procedure {
                 comment)) {
             stmt.executeUpdate();
         }
+
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateUser, rating, currentTime, user_id)) {
+            t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, user_id);
             preparedStatement.executeUpdate();
         }
+
+        System.out.format("%s\n", t.substring(1));
     }
 }

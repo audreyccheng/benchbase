@@ -74,10 +74,13 @@ public class NewComment extends Procedure {
     public Object[] run(Connection conn, Timestamp[] benchmarkTimes,
                         long item_id, long seller_id, long buyer_id, String question) throws SQLException {
         final Timestamp currentTime = AuctionMarkUtil.getProcTimestamp(benchmarkTimes);
+        String t = "";
 
         // Set comment_id
         long ic_id = 0;
+        
         try (PreparedStatement stmt = this.getPreparedStatement(conn, getItemComments, item_id, seller_id)) {
+            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             try (ResultSet results = stmt.executeQuery()) {
                 if (results.next()) {
                     ic_id = results.getLong(1) + 1;
@@ -96,12 +99,16 @@ public class NewComment extends Procedure {
         }
 
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateItemComments, item_id, seller_id)) {
+            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             preparedStatement.executeUpdate();
         }
 
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateUser, currentTime, seller_id)) {
+            t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, seller_id);
             preparedStatement.executeUpdate();
         }
+
+        System.out.format("%s\n", t.substring(1));
 
         // Return new ic_id
         return new Object[]{ic_id,

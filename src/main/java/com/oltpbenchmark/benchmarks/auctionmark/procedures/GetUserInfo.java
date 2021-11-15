@@ -130,7 +130,6 @@ public class GetUserInfo extends Procedure {
              ResultSet rs = stmt.executeQuery()) {
             user = SQLUtil.toList(rs);
             for (Object[] user_item : user) {
-                System.out.println(user_item.length);
                 long u_id = SQLUtil.getLong(user_item[0]);
                 long r_id = SQLUtil.getLong(user_item[10]);
 
