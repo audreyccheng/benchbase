@@ -59,8 +59,10 @@ public class GetItem extends Procedure {
 
         Object[] item_row = null;
         String t = "";
+        int rid = 0;
+
         try (PreparedStatement item_stmt = this.getPreparedStatement(conn, getItem, item_id, seller_id)) {
-            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
+            t += "," + String.format("%d-%s:%d:%d-", rid++, AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             try (ResultSet item_results = item_stmt.executeQuery()) {
                 if (!item_results.next()) {
                     throw new UserAbortException("Invalid item " + item_id);
@@ -71,13 +73,14 @@ public class GetItem extends Procedure {
 
         Object[] user_row = null;
         try (PreparedStatement user_stmt = this.getPreparedStatement(conn, getUser, seller_id)) {
-            t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, seller_id);
+            int userAcctRid = rid++;
+            t += "," + String.format("%d-%s:%d-", userAcctRid, AuctionMarkConstants.TABLENAME_USERACCT, seller_id);
             try (ResultSet user_results = user_stmt.executeQuery()) {
                 if (!user_results.next()) {
                     throw new UserAbortException("Invalid user id " + seller_id);
                 }
                 user_row = SQLUtil.getRowAsArray(user_results);
-                t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_REGION, SQLUtil.getLong(user_row[9]));
+                t += "," + String.format("%d-%s:%d-%d", rid++, AuctionMarkConstants.TABLENAME_REGION, SQLUtil.getLong(user_row[9]), userAcctRid);
             }
         }
 

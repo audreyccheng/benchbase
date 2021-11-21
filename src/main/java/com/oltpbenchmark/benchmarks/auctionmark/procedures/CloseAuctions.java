@@ -90,6 +90,8 @@ public class CloseAuctions extends Procedure {
                     startTime, endTime, currentTime));
         }
 
+        int rid = 0;
+
         int closed_ctr = 0;
         int waiting_ctr = 0;
         int round = AuctionMarkConstants.CLOSE_AUCTIONS_ROUNDS;
@@ -119,8 +121,9 @@ public class CloseAuctions extends Procedure {
                         long itemId = dueItemsTable.getLong(col++);
                         long sellerId = dueItemsTable.getLong(col++);
 
+                        int dueItemRid = rid++;
                         // itemId and sellerId compose the primary key for items table
-                        t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, itemId, sellerId);
+                        t += "," + String.format("%d-%s:%d:%d-", dueItemRid, AuctionMarkConstants.TABLENAME_ITEM, itemId, sellerId);
 
                         String i_name = dueItemsTable.getString(col++);
                         double currentPrice = dueItemsTable.getDouble(col++);
@@ -145,14 +148,15 @@ public class CloseAuctions extends Procedure {
                             param = 1;
                             maxBidStmt.setLong(param++, itemId);
                             maxBidStmt.setLong(param++, sellerId);
-                            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, itemId, sellerId);
+                            int itemBidRid = rid++;
+                            t += "," + String.format("%d-%s:%d:%d-%d", itemBidRid, AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, itemId, sellerId, dueItemRid);
 
                             try (ResultSet maxBidResults = maxBidStmt.executeQuery()) {
                                 adv = maxBidResults.next();
 
                                 col = 1;
                                 bidId = maxBidResults.getLong(col++);
-                                t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, bidId, itemId, sellerId);
+                                t += "," + String.format("%d-%s:%d:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, bidId, itemId, sellerId, itemBidRid);
                                 buyerId = maxBidResults.getLong(col++);
                                 try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, insertUserItem, buyerId, itemId, sellerId, currentTime)) {
                                     preparedStatement.executeUpdate();
@@ -169,7 +173,7 @@ public class CloseAuctions extends Procedure {
 
                         // Update Status!
                         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateItemStatus, itemStatus.ordinal(), currentTime, itemId, sellerId)) {
-                            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, itemId, sellerId);
+                            t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM, itemId, sellerId, dueItemRid);
                             preparedStatement.executeUpdate();
                         }
                         if (debug) {
