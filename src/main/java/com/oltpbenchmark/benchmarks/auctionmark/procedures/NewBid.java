@@ -140,7 +140,7 @@ public class NewBid extends Procedure {
         LOG.debug(String.format("Attempting to place new bid on Item %d [buyer=%d, bid=%.2f]",
                 item_id, buyer_id, newBid));
 
-
+        String t = "";
 
         // Check to make sure that we can even add a new bid to this item
         // If we fail to get back an item, then we know that the auction is closed
@@ -151,6 +151,7 @@ public class NewBid extends Procedure {
         ItemStatus i_status;
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, getItem, item_id, seller_id)) {
+            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             try (ResultSet results = stmt.executeQuery()) {
                 if (!results.next()) {
                     throw new UserAbortException("Invalid item " + item_id);
@@ -179,6 +180,7 @@ public class NewBid extends Procedure {
                 try (ResultSet results = stmt.executeQuery()) {
                     results.next();
 
+                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, results.getLong(1), item_id, seller_id);
                     newBidId = results.getLong(1) + 1;
                 }
             }
@@ -189,6 +191,7 @@ public class NewBid extends Procedure {
             double currentBidMax;
             long currentBuyerId;
             try (PreparedStatement stmt = this.getPreparedStatement(conn, getItemMaxBid, item_id, seller_id)) {
+                t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id);
                 try (ResultSet results = stmt.executeQuery()) {
                     results.next();
 
@@ -197,6 +200,8 @@ public class NewBid extends Procedure {
                     currentBidAmount = results.getDouble(col++);
                     currentBidMax = results.getDouble(col++);
                     currentBuyerId = results.getLong(col++);
+
+                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id);
                 }
             }
 
@@ -218,6 +223,7 @@ public class NewBid extends Procedure {
                         currentBidId,
                         item_id,
                         seller_id)) {
+                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id);
                     preparedStatement.executeUpdate();
                 }
                 LOG.debug(String.format("Increasing the max bid the highest bidder %s from %.2f to %.2f for Item %d",
@@ -248,6 +254,7 @@ public class NewBid extends Procedure {
                             currentBidId,
                             item_id,
                             seller_id)) {
+                                t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id);
                         preparedStatement.executeUpdate();
                     }
                     LOG.debug(String.format("Keeping the existing highest bidder of Item %d as %s but updating current price from %.2f to %.2f",
@@ -272,6 +279,7 @@ public class NewBid extends Procedure {
                         currentTime,
                         item_id,
                         seller_id)) {
+                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
                     preparedStatement.executeUpdate();
                 }
 
@@ -284,6 +292,7 @@ public class NewBid extends Procedure {
                             currentTime,
                             item_id,
                             seller_id)) {
+                            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id);
                         preparedStatement.executeUpdate();
                     }
                     LOG.debug(String.format("Changing new highest bidder of Item %d to %s [newMaxBid=%.2f > currentMaxBid=%.2f]",
@@ -316,6 +325,7 @@ public class NewBid extends Procedure {
                     currentTime,
                     item_id,
                     seller_id)) {
+                        t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
                 preparedStatement.execute();
             }
             LOG.debug(String.format("Creating the first bid record for Item %d and setting %s as highest bidder at %.2f",
