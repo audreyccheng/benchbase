@@ -62,12 +62,14 @@ public class NewCommentResponse extends Procedure {
                     long item_id, long seller_id, long comment_id, String response) throws SQLException {
         final Timestamp currentTime = AuctionMarkUtil.getProcTimestamp(benchmarkTimes);
         String t = "";
-        t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_COMMENT, comment_id, item_id, seller_id);
+        int rid = 0;
+
+        t += "," + String.format("%d-%s:%d:%d:%d-", rid++, AuctionMarkConstants.TABLENAME_ITEM_COMMENT, comment_id, item_id, seller_id);
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateComment, response, currentTime, comment_id, item_id, seller_id)) {
             preparedStatement.executeUpdate();
         }
 
-        t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, seller_id);
+        t += "," + String.format("%d-%s:%d-", rid++, AuctionMarkConstants.TABLENAME_USERACCT, seller_id);
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateUser, currentTime, seller_id)) {
             preparedStatement.executeUpdate();
         }
