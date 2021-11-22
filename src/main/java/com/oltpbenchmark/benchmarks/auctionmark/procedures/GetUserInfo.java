@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * GetUserInfo
@@ -118,6 +120,7 @@ public class GetUserInfo extends Procedure {
                                 boolean get_watched_items) throws SQLException {
         final boolean debug = LOG.isDebugEnabled();
         String t = "";
+        int rid = 0;
 
         // The first VoltTable in the output will always be the user's information
         if (debug) {
@@ -134,8 +137,9 @@ public class GetUserInfo extends Procedure {
                 long r_id = SQLUtil.getLong(user_item[10]);
 
                 // This request involves a join, meaning 2 requests
-                t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, u_id);
-                t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_REGION, r_id);
+                int userRid = rid++;
+                t += "," + String.format("%d-%s:%d-", userRid, AuctionMarkConstants.TABLENAME_USERACCT, u_id);
+                t += "," + String.format("%d-%s:%d-%d", rid++, AuctionMarkConstants.TABLENAME_REGION, r_id, userRid);
             }
         }
 
@@ -145,20 +149,20 @@ public class GetUserInfo extends Procedure {
             if (debug) {
                 LOG.debug("Grabbing USER_FEEDBACK records: {}", user_id);
             }
-            t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, user_id);
+
+            int userRid = rid++;
+            t += "," + String.format("%d-%s:%d-", userRid, AuctionMarkConstants.TABLENAME_USERACCT, user_id);
             try (PreparedStatement stmt = this.getPreparedStatement(conn, getUserFeedback, user_id);
                  ResultSet rs = stmt.executeQuery()) {
                 userFeedback = SQLUtil.toList(rs);
                 for (Object[] userFeedbackItem : userFeedback) {
-                    long u_id = SQLUtil.getLong(userFeedbackItem[0]);
+                    // long u_id = SQLUtil.getLong(userFeedbackItem[0]);
                     long uf_u_id = SQLUtil.getLong(userFeedbackItem[7]);
                     long uf_i_id = SQLUtil.getLong(userFeedbackItem[8]);
                     long uf_i_u_id = SQLUtil.getLong(userFeedbackItem[9]);
                     long uf_from_id = SQLUtil.getLong(userFeedbackItem[10]);
 
-                    // This request involves a join, meaning 2 requests
-                    t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, u_id);
-                    t += "," + String.format("%s:%d:%d:%d:%d", AuctionMarkConstants.TABLENAME_USERACCT_FEEDBACK, uf_u_id, uf_i_id, uf_i_u_id, uf_from_id);
+                    t += "," + String.format("%d-%s:%d:%d:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_USERACCT_FEEDBACK, uf_u_id, uf_i_id, uf_i_u_id, uf_from_id, userRid);
                 }
             }
         }
@@ -173,16 +177,28 @@ public class GetUserInfo extends Procedure {
             try (PreparedStatement stmt = this.getPreparedStatement(conn, getItemComments, user_id, ItemStatus.OPEN.ordinal());
                  ResultSet rs = stmt.executeQuery()) {
                 itemComments = SQLUtil.toList(rs);
+
+                // DAG TRACING: a join with multiple results per left table primary key
+                // Right table requests depend on left table primary keys
+                // Maintain mapping of left primary key to associated rid
+                Map<Long, Integer> itemReqRids = new HashMap<>();
                 for (Object[] itemComment : itemComments) {
                     long i_id = SQLUtil.getLong(itemComment[0]);
-                    long i_u_id = SQLUtil.getLong(itemComment[1]);
+                    // long i_u_id = SQLUtil.getLong(itemComment[1]);
                     long ic_id = SQLUtil.getLong(itemComment[7]);
                     long ic_i_id = SQLUtil.getLong(itemComment[8]);
                     long ic_u_id = SQLUtil.getLong(itemComment[9]);
 
-                    // This request involves a join, meaning 2 requests
-                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, i_id, i_u_id);
-                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_COMMENT, ic_id, ic_i_id, ic_u_id);
+                    int itemRid = rid++;
+                    itemReqRids.putIfAbsent(i_id, itemRid);
+                    
+                    // ItemComment side
+                    t += "," + String.format("%d-%s:%d:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_COMMENT, ic_id, ic_i_id, ic_u_id, itemReqRids.get(i_id));
+                }
+
+                // Item side
+                for (long i_id : itemReqRids.keySet()) {
+                    t += "," + String.format("%d-%s:%d:%d-", itemReqRids.get(i_id), AuctionMarkConstants.TABLENAME_ITEM, i_id, user_id);
                 }
             }
         }
@@ -201,7 +217,7 @@ public class GetUserInfo extends Procedure {
                     long i_id = SQLUtil.getLong(sellerItem[0]);
                     long i_u_id = SQLUtil.getLong(sellerItem[1]);
 
-                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, i_id, i_u_id);
+                    t += "," + String.format("%d-%s:%d:%d-", rid++, AuctionMarkConstants.TABLENAME_ITEM, i_id, i_u_id);
                 }
             }
         }
@@ -217,6 +233,8 @@ public class GetUserInfo extends Procedure {
             if (debug) {
                 LOG.debug("Grabbing buyer's USER_ITEM records: {}", user_id);
             }
+
+            // DAG TRACING: returns multiple, unique rows from UseracctItem, each corresponding to 1 row from Item
             try (PreparedStatement stmt = this.getPreparedStatement(conn, getBuyerItems, user_id);
                  ResultSet rs = stmt.executeQuery()) {
                 buyerItems = SQLUtil.toList(rs);
@@ -228,8 +246,9 @@ public class GetUserInfo extends Procedure {
                     long ui_i_id = SQLUtil.getLong(buyerItem[8]);
                     long ui_i_u_id = SQLUtil.getLong(buyerItem[9]);
 
-                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, i_id, i_u_id);
-                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_USERACCT_ITEM, ui_u_id, ui_i_id, ui_i_u_id);
+                    int userItemRid = rid++;
+                    t += "," + String.format("%d-%s:%d:%d:%d-", userItemRid, AuctionMarkConstants.TABLENAME_USERACCT_ITEM, ui_u_id, ui_i_id, ui_i_u_id);
+                    t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM, i_id, i_u_id, userItemRid);
                 }
             }
         }
@@ -242,6 +261,8 @@ public class GetUserInfo extends Procedure {
             if (debug) {
                 LOG.debug("Grabbing buyer's USER_WATCH records: {}", user_id);
             }
+
+            // DAG TRACING: returns multiple, unique rows from UseracctWatch, each corresponding to 1 row from Item
             try (PreparedStatement stmt = this.getPreparedStatement(conn, getWatchedItems, user_id);
                  ResultSet rs = stmt.executeQuery()) {
 
@@ -254,8 +275,9 @@ public class GetUserInfo extends Procedure {
                     long uw_i_id = SQLUtil.getLong(watchItem[9]);
                     long uw_i_u_id = SQLUtil.getLong(watchItem[10]);
     
-                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, i_id, i_u_id);
-                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_USERACCT_WATCH, uw_u_id, uw_i_id, uw_i_u_id);
+                    int userWatchRid = rid++;
+                    t += "," + String.format("%d-%s:%d:%d:%d-", userWatchRid, AuctionMarkConstants.TABLENAME_USERACCT_WATCH, uw_u_id, uw_i_id, uw_i_u_id);
+                    t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM, i_id, i_u_id, userWatchRid);
                 }
             }
         }
