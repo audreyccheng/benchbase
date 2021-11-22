@@ -141,6 +141,7 @@ public class NewBid extends Procedure {
                 item_id, buyer_id, newBid));
 
         String t = "";
+        int rid = 0;
 
         // Check to make sure that we can even add a new bid to this item
         // If we fail to get back an item, then we know that the auction is closed
@@ -150,8 +151,9 @@ public class NewBid extends Procedure {
         Timestamp i_end_date;
         ItemStatus i_status;
 
+        int getItemRid = rid++;
         try (PreparedStatement stmt = this.getPreparedStatement(conn, getItem, item_id, seller_id)) {
-            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
+            t += "," + String.format("%d-%s:%d:%d-", getItemRid, AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             try (ResultSet results = stmt.executeQuery()) {
                 if (!results.next()) {
                     throw new UserAbortException("Invalid item " + item_id);
@@ -180,7 +182,8 @@ public class NewBid extends Procedure {
                 try (ResultSet results = stmt.executeQuery()) {
                     results.next();
 
-                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, results.getLong(1), item_id, seller_id);
+                    // DAG TRACING: in the spec, this is not dependent on the getItem request. However, it is dependent in this implementation, thus the depedency
+                    t += "," + String.format("%d-%s:%d:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, results.getLong(1), item_id, seller_id, getItemRid);
                     newBidId = results.getLong(1) + 1;
                 }
             }
@@ -190,8 +193,10 @@ public class NewBid extends Procedure {
             double currentBidAmount;
             double currentBidMax;
             long currentBuyerId;
+            int itemMaxBidRid;
             try (PreparedStatement stmt = this.getPreparedStatement(conn, getItemMaxBid, item_id, seller_id)) {
-                t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id);
+                int maxBidRid = rid++;
+                t += "," + String.format("%d-%s:%d:%d-%d", maxBidRid, AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id, getItemRid);
                 try (ResultSet results = stmt.executeQuery()) {
                     results.next();
 
@@ -201,7 +206,8 @@ public class NewBid extends Procedure {
                     currentBidMax = results.getDouble(col++);
                     currentBuyerId = results.getLong(col++);
 
-                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id);
+                    itemMaxBidRid = rid++;
+                    t += "," + String.format("%d-%s:%d:%d:%d-%d", itemMaxBidRid, AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id, maxBidRid);
                 }
             }
 
@@ -223,7 +229,7 @@ public class NewBid extends Procedure {
                         currentBidId,
                         item_id,
                         seller_id)) {
-                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id);
+                    t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id, itemMaxBidRid);
                     preparedStatement.executeUpdate();
                 }
                 LOG.debug(String.format("Increasing the max bid the highest bidder %s from %.2f to %.2f for Item %d",
@@ -254,7 +260,7 @@ public class NewBid extends Procedure {
                             currentBidId,
                             item_id,
                             seller_id)) {
-                                t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id);
+                                t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id, itemMaxBidRid);
                         preparedStatement.executeUpdate();
                     }
                     LOG.debug(String.format("Keeping the existing highest bidder of Item %d as %s but updating current price from %.2f to %.2f",
@@ -279,7 +285,7 @@ public class NewBid extends Procedure {
                         currentTime,
                         item_id,
                         seller_id)) {
-                    t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
+                    t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id, itemMaxBidRid);
                     preparedStatement.executeUpdate();
                 }
 
@@ -292,7 +298,7 @@ public class NewBid extends Procedure {
                             currentTime,
                             item_id,
                             seller_id)) {
-                            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id);
+                            t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id, itemMaxBidRid);
                         preparedStatement.executeUpdate();
                     }
                     LOG.debug(String.format("Changing new highest bidder of Item %d to %s [newMaxBid=%.2f > currentMaxBid=%.2f]",
@@ -325,12 +331,14 @@ public class NewBid extends Procedure {
                     currentTime,
                     item_id,
                     seller_id)) {
-                        t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
+                        t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id, getItemRid);
                 preparedStatement.execute();
             }
             LOG.debug(String.format("Creating the first bid record for Item %d and setting %s as highest bidder at %.2f",
                     item_id, buyer_id, i_current_price));
         }
+
+        System.out.format("%s\n", t.substring(1));
 
         // Return back information about the current state of the item auction
         return new Object[]{
