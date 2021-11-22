@@ -80,9 +80,10 @@ public class UpdateItem extends Procedure {
                        boolean delete_attribute, long[] add_attribute) throws SQLException {
         final Timestamp currentTime = AuctionMarkUtil.getProcTimestamp(benchmarkTimes);
         String t = "";
+        int rid = 0;
 
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateItem, description, currentTime, item_id, seller_id)) {
-            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
+            t += "," + String.format("%d-%s:%d:%d-", rid++, AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             int updated = stmt.executeUpdate();
             if (updated == 0) {
                 throw new UserAbortException("Unable to update closed auction");
@@ -95,7 +96,7 @@ public class UpdateItem extends Procedure {
             // Only delete the first (if it even exists)
             long ia_id = AuctionMarkUtil.getUniqueElementId(item_id, 0);
             try (PreparedStatement stmt = this.getPreparedStatement(conn, deleteItemAttribute, ia_id, item_id, seller_id)) {
-                t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_ATTRIBUTE, ia_id, item_id, seller_id);
+                t += "," + String.format("%d-%s:%d:%d:%d-", rid++, AuctionMarkConstants.TABLENAME_ITEM_ATTRIBUTE, ia_id, item_id, seller_id);
                 stmt.executeUpdate();
             }
         }
@@ -113,7 +114,9 @@ public class UpdateItem extends Procedure {
                     } else {
                         ia_id = AuctionMarkUtil.getUniqueElementId(item_id, 0);
                     }
-                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_ATTRIBUTE, ia_id, item_id, seller_id);
+
+                    // DAG TRACING: don't think delete item_attribute request is a dependency, as we can get max item attribute id in parallel and still be correct
+                    t += "," + String.format("%d-%s:%d:%d:%d-", rid++, AuctionMarkConstants.TABLENAME_ITEM_ATTRIBUTE, ia_id, item_id, seller_id);
                 }
             }
 

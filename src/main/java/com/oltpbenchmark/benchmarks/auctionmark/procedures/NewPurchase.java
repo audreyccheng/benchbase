@@ -141,9 +141,12 @@ public class NewPurchase extends Procedure {
                         long item_id, long seller_id, long ip_id, double buyer_credit) throws SQLException {
         final Timestamp currentTime = AuctionMarkUtil.getProcTimestamp(benchmarkTimes);
         String t = "";
+        int rid = 0;
 
+        int itemMaxBidRid = rid++;
+        int getItemDepRid = itemMaxBidRid;
         // HACK: Check whether we have an ITEM_MAX_BID record. If not, we'll insert one
-        t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id);
+        t += "," + String.format("%d-%s:%d:%d-", itemMaxBidRid, AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id);
         try (PreparedStatement getItemMaxBidStatement = this.getPreparedStatement(conn, getItemMaxBid, item_id, seller_id);
              ResultSet results = getItemMaxBidStatement.executeQuery()) {
             if (!results.next()) {
@@ -152,7 +155,9 @@ public class NewPurchase extends Procedure {
                     getMaxBidResults.next();
 
                     long bid_id = results.getLong(1);
-                    t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, bid_id, item_id, seller_id);
+                    int maxBidRid = rid++;
+                    getItemDepRid = maxBidRid;
+                    t += "," + String.format("%d-%s:%d:%d:%d-%d", maxBidRid, AuctionMarkConstants.TABLENAME_ITEM_BID, bid_id, item_id, seller_id, itemMaxBidRid);
 
                     try (PreparedStatement insertItemMaxBidStatement = this.getPreparedStatement(conn, insertItemMaxBid, item_id,
                             seller_id,
@@ -178,6 +183,10 @@ public class NewPurchase extends Procedure {
         long ib_buyer_id;
         double u_balance;
 
+        int getItemRid = rid++;
+        int getItemMaxBidRid2 = rid++;
+        int getItemBidRid = rid++;
+        int getBuyerRid = rid++;
         try (PreparedStatement stmt = this.getPreparedStatement(conn, getItemInfo, item_id, seller_id)) {
             try (ResultSet results = stmt.executeQuery()) {
                 if (!results.next()) {
@@ -195,10 +204,10 @@ public class NewPurchase extends Procedure {
                 long ib_i_id = results.getLong(col++);
                 long ib_u_id = results.getLong(col++);
 
-                t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
-                t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id);
-                t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_ITEM_BID, ib_id, ib_i_id, ib_u_id);
-                t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, ib_buyer_id);
+                t += "," + String.format("%d-%s:%d:%d-%d", getItemRid, AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id, getItemDepRid);
+                t += "," + String.format("%d-%s:%d:%d-%d", getItemMaxBidRid2, AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id, getItemRid);
+                t += "," + String.format("%d-%s:%d:%d:%d-%d", getItemBidRid, AuctionMarkConstants.TABLENAME_ITEM_BID, ib_id, ib_i_id, ib_u_id, getItemMaxBidRid2);
+                t += "," + String.format("%d-%s:%d-%d", getBuyerRid, AuctionMarkConstants.TABLENAME_USERACCT, ib_buyer_id, getItemBidRid);
             }
         }
 
@@ -219,7 +228,7 @@ public class NewPurchase extends Procedure {
 
         // Update item status to close
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateItem, currentTime, item_id, seller_id)) {
-            t += "," + String.format("%s:%d:%d", AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
+            t += "," + String.format("%d-%s:%d:%d-", rid++, AuctionMarkConstants.TABLENAME_ITEM, item_id, seller_id);
             preparedStatement.executeUpdate();
         }
 
@@ -227,7 +236,7 @@ public class NewPurchase extends Procedure {
         // If we don't have a record to update, just go ahead and create it
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateUserItem, ip_id, ib_id, item_id, seller_id,
                 ib_buyer_id, item_id, seller_id)) {
-            t += "," + String.format("%s:%d:%d:%d", AuctionMarkConstants.TABLENAME_USERACCT_ITEM, ib_id, item_id, seller_id);
+            t += "," + String.format("%d-%s:%d:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_USERACCT_ITEM, ib_id, item_id, seller_id, getItemBidRid);
             int updated = preparedStatement.executeUpdate();
             if (updated == 0) {
                 try (PreparedStatement preparedStatement2 = this.getPreparedStatement(conn, insertUserItem, ib_buyer_id, item_id, seller_id,
@@ -239,13 +248,13 @@ public class NewPurchase extends Procedure {
         }
         // Decrement the buyer's account
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateUserBalance, -1 * (i_current_price) + buyer_credit, ib_buyer_id)) {
-            t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, ib_buyer_id);
+            t += "," + String.format("%d-%s:%d-%d", rid++, AuctionMarkConstants.TABLENAME_USERACCT, ib_buyer_id, getItemBidRid);
             preparedStatement.executeUpdate();
         }
 
         // And credit the seller's account
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, updateUserBalance, i_current_price, seller_id)) {
-            t += "," + String.format("%s:%d", AuctionMarkConstants.TABLENAME_USERACCT, seller_id);
+            t += "," + String.format("%d-%s:%d-%d", rid++, AuctionMarkConstants.TABLENAME_USERACCT, seller_id, getItemRid);
             preparedStatement.executeUpdate();
         }
 
