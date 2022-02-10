@@ -124,8 +124,8 @@ public class FindFlights extends Procedure {
                                 long f_depart_airport = flightResults.getLong(4);
                                 long f_arrive_airport = flightResults.getLong(6);
 
-                                // flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, flightResults.getLong(1)) + ",";
-                                // flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRLINE, flightResults.getLong(2)) + ",";
+                                flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, flightResults.getLong(1)) + ",";
+                                flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRLINE, flightResults.getLong(2)) + ",";
 
                                 Object[] row = new Object[13];
                                 int r = 0;
@@ -139,9 +139,9 @@ public class FindFlights extends Procedure {
                                 try (ResultSet ai_results = ai_stmt.executeQuery()) {
                                     ai_results.next();
 
-                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_depart_airport) + ",";
-                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getString(6)) + ",";
-                                    // airportResultsTrace += ";";
+                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_depart_airport) + ",";
+                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
+                                    airportResultsTrace += ";";
 
                                     row[r++] = flightResults.getDate(5);    // [03] DEPART_TIME
                                     row[r++] = ai_results.getString(1);     // [04] DEPART_AP_CODE
@@ -155,9 +155,9 @@ public class FindFlights extends Procedure {
                                 try (ResultSet ai_results = ai_stmt.executeQuery()) {
                                     ai_results.next();
 
-                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_arrive_airport) + ",";
-                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getString(6)) + ",";
-                                    // airportResultsTrace += ";";
+                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_arrive_airport) + ",";
+                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
+                                    airportResultsTrace += ";";
 
                                     row[r++] = flightResults.getDate(7);    // [08] ARRIVE_TIME
                                     row[r++] = ai_results.getString(1);     // [09] ARRIVE_AP_CODE
@@ -168,9 +168,9 @@ public class FindFlights extends Procedure {
 
                                 finalResults.add(row);
                             }
-                            // t += flightResultsTrace;
-                            // t += ";";
-                            // t += airportResultsTrace;
+                            t += flightResultsTrace;
+                            t += ";";
+                            t += airportResultsTrace;
                         }
                     }
                 }
