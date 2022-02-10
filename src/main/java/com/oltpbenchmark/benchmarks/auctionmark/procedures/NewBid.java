@@ -229,7 +229,7 @@ public class NewBid extends Procedure {
                         currentBidId,
                         item_id,
                         seller_id)) {
-                    t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id, itemMaxBidRid);
+                    t += "," + String.format("%d-%s:%d:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id, itemMaxBidRid);
                     preparedStatement.executeUpdate();
                 }
                 LOG.debug(String.format("Increasing the max bid the highest bidder %s from %.2f to %.2f for Item %d",
@@ -260,7 +260,7 @@ public class NewBid extends Procedure {
                             currentBidId,
                             item_id,
                             seller_id)) {
-                                t += "," + String.format("%d-%s:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id, itemMaxBidRid);
+                                t += "," + String.format("%d-%s:%d:%d:%d-%d", rid++, AuctionMarkConstants.TABLENAME_ITEM_BID, currentBidId, item_id, seller_id, itemMaxBidRid);
                         preparedStatement.executeUpdate();
                     }
                     LOG.debug(String.format("Keeping the existing highest bidder of Item %d as %s but updating current price from %.2f to %.2f",

@@ -65,8 +65,8 @@ public class FindFlights extends Procedure {
 
     public List<Object[]> run(Connection conn, long depart_aid, long arrive_aid, Timestamp start_date, Timestamp end_date, long distance) throws SQLException {
         try {
-
-
+            System.out.println("Ran FindFlights");
+            String t = "";
             final List<Long> arrive_aids = new ArrayList<>();
             arrive_aids.add(arrive_aid);
 
@@ -80,10 +80,13 @@ public class FindFlights extends Procedure {
                             long aid = nearby_results.getLong(1);
                             double aid_distance = nearby_results.getDouble(2);
 
+                            t += String.format("%s:%d:%d", SEATSConstants.TABLENAME_AIRPORT_DISTANCE, depart_aid, aid) + ",";
+
                             LOG.debug("DEPART NEARBY: {} distance={} miles", aid, aid_distance);
 
                             arrive_aids.add(aid);
                         }
+                        t += ";";
                     }
                 }
             }
@@ -114,12 +117,15 @@ public class FindFlights extends Procedure {
 
                     // Process Result
                     try (ResultSet flightResults = f_stmt.executeQuery()) {
-
-
                         try (PreparedStatement ai_stmt = this.getPreparedStatement(conn, GetAirportInfo)) {
+                            String flightResultsTrace = "";
+                            String airportResultsTrace = "";
                             while (flightResults.next()) {
                                 long f_depart_airport = flightResults.getLong(4);
                                 long f_arrive_airport = flightResults.getLong(6);
+
+                                // flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, flightResults.getLong(1)) + ",";
+                                // flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRLINE, flightResults.getLong(2)) + ",";
 
                                 Object[] row = new Object[13];
                                 int r = 0;
@@ -133,6 +139,10 @@ public class FindFlights extends Procedure {
                                 try (ResultSet ai_results = ai_stmt.executeQuery()) {
                                     ai_results.next();
 
+                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_depart_airport) + ",";
+                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getString(6)) + ",";
+                                    // airportResultsTrace += ";";
+
                                     row[r++] = flightResults.getDate(5);    // [03] DEPART_TIME
                                     row[r++] = ai_results.getString(1);     // [04] DEPART_AP_CODE
                                     row[r++] = ai_results.getString(2);     // [05] DEPART_AP_NAME
@@ -145,6 +155,10 @@ public class FindFlights extends Procedure {
                                 try (ResultSet ai_results = ai_stmt.executeQuery()) {
                                     ai_results.next();
 
+                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_arrive_airport) + ",";
+                                    // airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getString(6)) + ",";
+                                    // airportResultsTrace += ";";
+
                                     row[r++] = flightResults.getDate(7);    // [08] ARRIVE_TIME
                                     row[r++] = ai_results.getString(1);     // [09] ARRIVE_AP_CODE
                                     row[r++] = ai_results.getString(2);     // [10] ARRIVE_AP_NAME
@@ -153,8 +167,10 @@ public class FindFlights extends Procedure {
                                 }
 
                                 finalResults.add(row);
-
                             }
+                            // t += flightResultsTrace;
+                            // t += ";";
+                            // t += airportResultsTrace;
                         }
                     }
                 }
@@ -162,6 +178,7 @@ public class FindFlights extends Procedure {
             }
 
             LOG.debug("Flight Information:\n{}", finalResults);
+            System.out.println(t);
 
             return (finalResults);
         } catch (SQLException esql) {
