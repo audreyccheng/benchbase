@@ -68,7 +68,7 @@ public class FindOpenSeats extends Procedure {
     );
 
     public Object[][] run(Connection conn, long f_id) throws SQLException {
-
+        String t = "";
         // 150 seats
         final long[] seatmap = new long[]
                 {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -93,6 +93,7 @@ public class FindOpenSeats extends Procedure {
         try (PreparedStatement f_stmt = this.getPreparedStatement(conn, GetFlight)) {
             f_stmt.setLong(1, f_id);
             try (ResultSet f_results = f_stmt.executeQuery()) {
+                t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
                 f_results.next();
 
                 // long status = results[0].getLong(0);
@@ -123,13 +124,18 @@ public class FindOpenSeats extends Procedure {
                     long r_id = s_results.getLong(1);
                     int seatnum = s_results.getInt(3);
 
+                    t += String.format("%s:%d", SEATSConstants.TABLENAME_RESERVATION, r_id) + ",";
+
                     LOG.debug(String.format("Reserved Seat: fid %d / rid %d / seat %d", f_id, r_id, seatnum));
 
 
                     seatmap[seatnum] = 1;
                 }
+                t += ";";
             }
         }
+
+        System.out.println(t);
 
         int ctr = 0;
         Object[][] returnResults = new Object[SEATSConstants.FLIGHTS_NUM_SEATS][];
