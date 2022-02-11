@@ -108,28 +108,24 @@ public class UpdateCustomer extends Procedure {
             try (ResultSet airport_results = preparedStatement.executeQuery()) {
                 airport_results.next();
                 t += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, base_airport) + ",";
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, airport_results.getInt(1)) + ",;";
+                t += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, airport_results.getInt(1)) + ",";
             }
         }
 
 
         long ff_al_id;
-
+        String ff_updates_trace = "";
         if (update_ff != null) {
             try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, GetFrequentFlyers, c_id)) {
                 try (ResultSet ff_results = preparedStatement.executeQuery()) {
-                    String ff_results_trace = "";
-                    String ff_updates_trace = "";
                     while (ff_results.next()) {
                         ff_al_id = ff_results.getLong(2);
-                        ff_results_trace += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ",";
+                        t += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ",";
                         try (PreparedStatement updateStatement = this.getPreparedStatement(conn, UpdatFrequentFlyers, attr0, attr1, c_id, ff_al_id)) {
                             updateStatement.executeUpdate();
-                            ff_updates_trace += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ";";
+                            ff_updates_trace += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ",";
                         }
                     }
-                    t += ff_results_trace + ";";
-                    t += ff_updates_trace;
                 }
             }
         }
@@ -140,6 +136,7 @@ public class UpdateCustomer extends Procedure {
             updated = preparedStatement.executeUpdate();
             t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
         }
+        t += ff_updates_trace + ";";
 
         System.out.println(t);
         if (updated != 1) {

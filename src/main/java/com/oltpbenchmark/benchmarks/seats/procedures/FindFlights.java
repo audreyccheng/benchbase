@@ -140,7 +140,6 @@ public class FindFlights extends Procedure {
 
                                     airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_depart_airport) + ",";
                                     airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
-                                    airportResultsTrace += ";";
 
                                     row[r++] = flightResults.getDate(5);    // [03] DEPART_TIME
                                     row[r++] = ai_results.getString(1);     // [04] DEPART_AP_CODE
@@ -156,7 +155,6 @@ public class FindFlights extends Procedure {
 
                                     airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_arrive_airport) + ",";
                                     airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
-                                    airportResultsTrace += ";";
 
                                     row[r++] = flightResults.getDate(7);    // [08] ARRIVE_TIME
                                     row[r++] = ai_results.getString(1);     // [09] ARRIVE_AP_CODE
@@ -167,9 +165,8 @@ public class FindFlights extends Procedure {
 
                                 finalResults.add(row);
                             }
-                            t += flightResultsTrace;
-                            t += ";";
-                            t += airportResultsTrace;
+                            t += flightResultsTrace + ";";
+                            t += airportResultsTrace + ";";
                         }
                     }
                 }

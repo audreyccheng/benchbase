@@ -93,7 +93,7 @@ public class FindOpenSeats extends Procedure {
         try (PreparedStatement f_stmt = this.getPreparedStatement(conn, GetFlight)) {
             f_stmt.setLong(1, f_id);
             try (ResultSet f_results = f_stmt.executeQuery()) {
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
+                t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ",";
                 f_results.next();
 
                 // long status = results[0].getLong(0);
