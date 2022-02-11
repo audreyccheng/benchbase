@@ -80,12 +80,10 @@ public class DeleteReservation extends Procedure {
                     "   AND FF_AL_ID = ?");
 
     public void run(Connection conn, long f_id, Long c_id, String c_id_str, String ff_c_id_str, Long ff_al_id) throws SQLException {
-
+        String t = "";
 
         // If we weren't given the customer id, then look it up
         if (c_id == null) {
-
-
             boolean has_al_id = false;
             String parameter;
             SQLStmt sqlStmt;
@@ -109,7 +107,9 @@ public class DeleteReservation extends Procedure {
                         c_id = results.getLong(1);
                         if (has_al_id) {
                             ff_al_id = results.getLong(2);
+                            t += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ",";
                         }
+                        t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
                     } else {
                         throw new UserAbortException(String.format("No Customer record was found [c_id_str=%s, ff_c_id_str=%s, ff_al_id=%s]",
                                 c_id_str, ff_c_id_str, ff_al_id));
@@ -131,24 +131,31 @@ public class DeleteReservation extends Procedure {
             stmt.setLong(2, f_id);
             try (ResultSet results = stmt.executeQuery()) {
                 if (!results.next()) {
+                    System.out.println(t);
                     throw new UserAbortException(String.format("No Customer information record found for id '%d'", c_id));
                 }
                 c_iattr00 = results.getLong(4) + 1;
                 seats_left = results.getLong(8);
                 r_id = results.getLong(9);
                 r_price = results.getDouble(11);
+
+                t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ",";
+                t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ",";
+                t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, c_id, f_id) + ";";
             }
         }
 
 
         // Now delete all of the flights that they have on this flight
         try (PreparedStatement stmt = this.getPreparedStatement(conn, DeleteReservation, r_id, c_id, f_id)) {
+            t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, c_id, f_id) + ";";
             stmt.executeUpdate();
         }
 
 
         // Update Available Seats on Flight
         try (PreparedStatement stmt = this.getPreparedStatement(conn, UpdateFlight, f_id)) {
+            t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
             stmt.executeUpdate();
         }
 
@@ -158,6 +165,7 @@ public class DeleteReservation extends Procedure {
             stmt.setLong(2, c_iattr00);
             stmt.setLong(3, c_id);
             stmt.executeUpdate();
+            t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
         }
 
 
@@ -165,9 +173,11 @@ public class DeleteReservation extends Procedure {
         if (ff_al_id != null) {
             try (PreparedStatement stmt = this.getPreparedStatement(conn, UpdateFrequentFlyer, c_id, ff_al_id)) {
                 stmt.executeUpdate();
+                t += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ";";
             }
         }
 
+        System.out.println(t);
         LOG.debug(String.format("Deleted reservation on flight %d for customer %d [seatsLeft=%d]", f_id, c_id, seats_left + 1));
 
     }

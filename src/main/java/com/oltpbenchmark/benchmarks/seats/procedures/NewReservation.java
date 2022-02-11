@@ -147,7 +147,7 @@ public class NewReservation extends Procedure {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
                 if (found) {
-                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getInt(1), results.getInt(2), f_id) + ";";
+                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
                 }
             }
         }
@@ -162,7 +162,7 @@ public class NewReservation extends Procedure {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
                 if (found) {
-                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getInt(1), results.getInt(2), f_id) + ";";
+                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
                 }
             }
         }

@@ -62,7 +62,7 @@ public class FindOpenSeats extends Procedure {
     );
 
     public final SQLStmt GetSeats = new SQLStmt(
-            "SELECT R_ID, R_F_ID, R_SEAT, R_C_ID " +
+            "SELECT R_ID, R_C_ID, R_SEAT, R_F_ID " +
                     "  FROM " + SEATSConstants.TABLENAME_RESERVATION +
                     " WHERE R_F_ID = ?"
     );
@@ -123,7 +123,7 @@ public class FindOpenSeats extends Procedure {
                 while (s_results.next()) {
                     long r_id = s_results.getLong(1);
                     int seatnum = s_results.getInt(3);
-                    long r_c_id = s_results.getLong(4);
+                    long r_c_id = s_results.getLong(2);
 
                     t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, r_c_id, f_id) + ",";
 
