@@ -56,7 +56,7 @@ public class UpdateReservation extends Procedure {
     private static final Logger LOG = LoggerFactory.getLogger(UpdateReservation.class);
 
     public final SQLStmt CheckSeat = new SQLStmt(
-            "SELECT R_ID " +
+            "SELECT R_ID, R_C_ID " +
                     "  FROM " + SEATSConstants.TABLENAME_RESERVATION +
                     " WHERE R_F_ID = ? and R_SEAT = ?");
 
@@ -83,17 +83,21 @@ public class UpdateReservation extends Procedure {
     };
 
     public void run(Connection conn, long r_id, long f_id, long c_id, long seatnum, long attr_idx, long attr_val) throws SQLException {
-
+        String t = "";
         boolean found;
 
         // Check if Seat is Available
         try (PreparedStatement stmt = this.getPreparedStatement(conn, CheckSeat, f_id, seatnum)) {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
+                if (found) {
+                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getInt(1), results.getInt(2), f_id) + ";";
+                }
             }
         }
 
         if (found) {
+            System.out.println(t);
             throw new UserAbortException(ErrorType.SEAT_ALREADY_RESERVED +
                     String.format(" Seat %d is already reserved on flight #%d", seatnum, f_id));
         }
@@ -102,10 +106,14 @@ public class UpdateReservation extends Procedure {
         try (PreparedStatement stmt = this.getPreparedStatement(conn, CheckCustomer, f_id, c_id)) {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
+                if (found) {
+                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), c_id, f_id) + ";";
+                }
             }
         }
 
         if (!found) {
+            System.out.println(t);
             throw new UserAbortException(ErrorType.CUSTOMER_ALREADY_HAS_SEAT +
                     String.format(" Customer %d does not have an existing reservation on flight #%d", c_id, f_id));
         }
@@ -114,8 +122,10 @@ public class UpdateReservation extends Procedure {
         int updated;
         try (PreparedStatement stmt = this.getPreparedStatement(conn, ReserveSeats[(int) attr_idx], seatnum, attr_val, r_id, c_id, f_id)) {
             updated = stmt.executeUpdate();
+            t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, c_id, f_id) + ";";
         }
 
+        System.out.println(t);
         if (updated != 1) {
             String msg = String.format("Failed to update reservation on flight %d for customer #%d - Updated %d records", f_id, c_id, updated);
                 LOG.warn(msg);
