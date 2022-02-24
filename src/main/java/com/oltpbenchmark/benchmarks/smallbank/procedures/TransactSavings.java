@@ -59,6 +59,7 @@ public class TransactSavings extends Procedure {
     );
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
+        String t = "";
         // First convert the custName to the acctId
         long custId;
 
@@ -69,6 +70,7 @@ public class TransactSavings extends Procedure {
                     throw new UserAbortException(msg);
                 }
                 custId = result.getLong(1);
+                t += String.format("%s:%d", SmallBankConstants.TABLENAME_ACCOUNTS, custId);
             }
         }
 
@@ -79,17 +81,20 @@ public class TransactSavings extends Procedure {
         try (PreparedStatement stmt = this.getPreparedStatement(conn, GetSavingsBalance, custId)) {
             try (ResultSet result = stmt.executeQuery()) {
                 if (!result.next()) {
+                    System.out.println(t);
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_SAVINGS,
                             custId);
                     throw new UserAbortException(msg);
                 }
+                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId);
                 balance = result.getDouble(1) - amount;
             }
         }
 
         // Make sure that they have enough
         if (balance < 0) {
+            System.out.println(t);
             String msg = String.format("Negative %s balance for customer #%d",
                     SmallBankConstants.TABLENAME_SAVINGS,
                     custId);
@@ -99,6 +104,9 @@ public class TransactSavings extends Procedure {
         // Then update their savings balance
         try (PreparedStatement stmt = this.getPreparedStatement(conn, UpdateSavingsBalance, amount, custId)) {
             int status = stmt.executeUpdate();
+            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId);
         }
+
+        System.out.println(t);
     }
 }

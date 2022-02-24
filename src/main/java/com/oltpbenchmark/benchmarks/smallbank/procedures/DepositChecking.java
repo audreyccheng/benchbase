@@ -54,6 +54,8 @@ public class DepositChecking extends Procedure {
     );
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
+        String t = "";
+        
         // First convert the custName to the custId
 
         long custId;
@@ -65,12 +67,15 @@ public class DepositChecking extends Procedure {
                     throw new UserAbortException(msg);
                 }
                 custId = r0.getLong(1);
+                t += String.format("%s:%d", SmallBankConstants.TABLENAME_ACCOUNTS, custId);
             }
         }
 
         // Then update their checking balance
         try (PreparedStatement stmt1 = this.getPreparedStatement(conn, UpdateCheckingBalance, amount, custId)) {
             int status = stmt1.executeUpdate();
+            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
         }
+        System.out.println(t);
     }
 }
