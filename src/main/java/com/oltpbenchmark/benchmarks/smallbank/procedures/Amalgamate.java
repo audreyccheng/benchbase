@@ -130,7 +130,7 @@ public class Amalgamate extends Procedure {
                             custId1);
                     throw new UserAbortException(msg);
                 }
-                t += String.format(",%s:%d;", SmallBankConstants.TABLENAME_CHECKING, custId1);
+                t += String.format(",%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId1);
                 checkingBalance = balRes1.getDouble(1);
             }
         }
@@ -141,7 +141,7 @@ public class Amalgamate extends Procedure {
         // Update Balance Information
         int status;
         try (PreparedStatement updateStmt0 = this.getPreparedStatement(conn, ZeroCheckingBalance, custId0)) {
-            t += String.format("%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId1);
+            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId1);
             status = updateStmt0.executeUpdate();
         }
 

@@ -52,6 +52,8 @@ public class Balance extends Procedure {
     );
 
     public double run(Connection conn, String custName) throws SQLException {
+        String t = "";
+
         // First convert the acctName to the acctId
         long custId;
 
@@ -62,6 +64,7 @@ public class Balance extends Procedure {
                     throw new UserAbortException(msg);
                 }
                 custId = r0.getLong(1);
+                t += String.format("%s:%d", SmallBankConstants.TABLENAME_ACCOUNTS, custId);
             }
         }
 
@@ -70,11 +73,13 @@ public class Balance extends Procedure {
         try (PreparedStatement balStmt0 = this.getPreparedStatement(conn, GetSavingsBalance, custId)) {
             try (ResultSet balRes0 = balStmt0.executeQuery()) {
                 if (!balRes0.next()) {
+                    System.out.println(t);
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_SAVINGS,
                             custId);
                     throw new UserAbortException(msg);
                 }
+                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId);
                 savingsBalance = balRes0.getDouble(1);
             }
         }
@@ -83,16 +88,18 @@ public class Balance extends Procedure {
         try (PreparedStatement balStmt1 = this.getPreparedStatement(conn, GetCheckingBalance, custId)) {
             try (ResultSet balRes1 = balStmt1.executeQuery()) {
                 if (!balRes1.next()) {
+                    System.out.println(t);
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_CHECKING,
                             custId);
                     throw new UserAbortException(msg);
                 }
-
+                t += String.format(",%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
                 checkingBalance = balRes1.getDouble(1);
             }
         }
 
+        System.out.println(t);
         return checkingBalance + savingsBalance;
     }
 }
