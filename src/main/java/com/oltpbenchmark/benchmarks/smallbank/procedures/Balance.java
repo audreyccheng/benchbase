@@ -53,7 +53,7 @@ public class Balance extends Procedure {
 
     public double run(Connection conn, String custName) throws SQLException {
         String t = "";
-        boolean printT = False;
+        boolean printT = false;
 
         // First convert the acctName to the acctId
         long custId;

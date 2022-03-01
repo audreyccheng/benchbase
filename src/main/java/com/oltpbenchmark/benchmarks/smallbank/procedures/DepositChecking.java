@@ -55,7 +55,7 @@ public class DepositChecking extends Procedure {
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
-        boolean printT = False;
+        boolean printT = false;
 
         // First convert the custName to the custId
 

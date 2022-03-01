@@ -81,7 +81,7 @@ public class Amalgamate extends Procedure {
 
     public void run(Connection conn, long custId0, long custId1) throws SQLException {
         String t = "";
-        boolean printT = False;
+        boolean printT = false;
 
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, custId0)) {

@@ -60,7 +60,7 @@ public class TransactSavings extends Procedure {
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
-        boolean printT = True;
+        boolean printT = true;
 
         // First convert the custName to the acctId
         long custId;

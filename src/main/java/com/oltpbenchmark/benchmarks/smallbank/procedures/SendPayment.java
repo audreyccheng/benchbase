@@ -59,7 +59,7 @@ public class SendPayment extends Procedure {
 
     public void run(Connection conn, long sendAcct, long destAcct, double amount) throws SQLException {
         String t = "";
-        boolean printT = False;
+        boolean printT = false;
 
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, sendAcct)) {
