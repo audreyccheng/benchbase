@@ -65,6 +65,7 @@ public class WriteCheck extends Procedure {
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
+        boolean printT = false;
         // First convert the custName to the custId
         long custId;
 
@@ -85,7 +86,9 @@ public class WriteCheck extends Procedure {
         try (PreparedStatement balStmt0 = this.getPreparedStatement(conn, GetSavingsBalance, custId)) {
             try (ResultSet balRes0 = balStmt0.executeQuery()) {
                 if (!balRes0.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_SAVINGS,
                             custId);
@@ -102,7 +105,9 @@ public class WriteCheck extends Procedure {
         try (PreparedStatement balStmt1 = this.getPreparedStatement(conn, GetCheckingBalance, custId)) {
             try (ResultSet balRes1 = balStmt1.executeQuery()) {
                 if (!balRes1.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_CHECKING,
                             custId);
@@ -129,8 +134,9 @@ public class WriteCheck extends Procedure {
 
 	/*if (!t.equals("")) {
                 t = "wc;" + t;
-        }
-	System.out.println(t);
-    	*/
+        }*/
+	if (printT) {
+        System.out.println(t);
+    }
     }
 }
