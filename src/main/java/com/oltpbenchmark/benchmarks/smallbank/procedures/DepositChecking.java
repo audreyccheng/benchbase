@@ -55,7 +55,8 @@ public class DepositChecking extends Procedure {
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
-        
+        boolean printT = False;
+
         // First convert the custName to the custId
 
         long custId;
@@ -78,8 +79,9 @@ public class DepositChecking extends Procedure {
         }
 	/*if (!t.equals("")) {
                 t = "dc;" + t;
-        }
+        }*/
+    if (printT) {
         System.out.println(t);
-    	*/
+    }
     }
 }

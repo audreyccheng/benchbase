@@ -59,6 +59,7 @@ public class SendPayment extends Procedure {
 
     public void run(Connection conn, long sendAcct, long destAcct, double amount) throws SQLException {
         String t = "";
+        boolean printT = False;
 
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, sendAcct)) {
@@ -74,7 +75,9 @@ public class SendPayment extends Procedure {
         try (PreparedStatement stmt1 = this.getPreparedStatement(conn, GetAccount, destAcct)) {
             try (ResultSet r1 = stmt1.executeQuery()) {
                 if (!r1.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = "Invalid account '" + destAcct + "'";
                     throw new UserAbortException(msg);
                 }
@@ -88,7 +91,9 @@ public class SendPayment extends Procedure {
         try (PreparedStatement balStmt0 = this.getPreparedStatement(conn, GetCheckingBalance, sendAcct)) {
             try (ResultSet balRes0 = balStmt0.executeQuery()) {
                 if (!balRes0.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_CHECKING,
                             sendAcct);
@@ -101,7 +106,9 @@ public class SendPayment extends Procedure {
 
         // Make sure that they have enough money
         if (balance < amount) {
-            System.out.println(t);
+            if (printT) {
+                System.out.println(t);
+            }
             String msg = String.format("Insufficient %s funds for customer #%d",
                     SmallBankConstants.TABLENAME_CHECKING, sendAcct);
             throw new UserAbortException(msg);
@@ -121,7 +128,9 @@ public class SendPayment extends Procedure {
         /*if (!t.equals("")) {
                 t = "sp;" + t;
         }
-	System.out.println(t);
     	*/
+    if (printT) {
+        System.out.println(t);
+    }
     }
 }
