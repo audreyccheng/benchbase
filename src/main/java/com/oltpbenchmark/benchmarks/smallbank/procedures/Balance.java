@@ -98,8 +98,12 @@ public class Balance extends Procedure {
                 checkingBalance = balRes1.getDouble(1);
             }
         }
-
+	
+	/*if (!t.equals("")) {
+                t = "b;" + t;
+        }
         System.out.println(t);
-        return checkingBalance + savingsBalance;
+        */
+	return checkingBalance + savingsBalance;
     }
 }

@@ -150,7 +150,11 @@ public class Amalgamate extends Procedure {
             t += String.format(",%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId1);
             status = updateStmt1.executeUpdate();
         }
-
+	
+	/*if (!t.equals("")) {
+		t = "a;" + t;
+	}
         System.out.println(t);
+	*/
     }
 }

@@ -127,6 +127,10 @@ public class WriteCheck extends Procedure {
             }
         }
 
-        System.out.println(t);
+	/*if (!t.equals("")) {
+                t = "wc;" + t;
+        }
+	System.out.println(t);
+    	*/
     }
 }

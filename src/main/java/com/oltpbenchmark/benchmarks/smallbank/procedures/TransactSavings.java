@@ -107,6 +107,9 @@ public class TransactSavings extends Procedure {
             t += String.format(";%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId);
         }
 
-        System.out.println(t);
+	/*if (!t.equals("")) {
+                t = "ts;" + t;
+        }*/
+	System.out.println(t);
     }
 }

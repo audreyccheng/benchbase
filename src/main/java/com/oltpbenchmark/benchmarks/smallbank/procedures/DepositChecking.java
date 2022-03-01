@@ -76,6 +76,10 @@ public class DepositChecking extends Procedure {
             int status = stmt1.executeUpdate();
             t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
         }
+	/*if (!t.equals("")) {
+                t = "dc;" + t;
+        }
         System.out.println(t);
+    	*/
     }
 }

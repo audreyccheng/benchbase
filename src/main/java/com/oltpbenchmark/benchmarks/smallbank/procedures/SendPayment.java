@@ -118,6 +118,10 @@ public class SendPayment extends Procedure {
             t += String.format(",%s:%d", SmallBankConstants.TABLENAME_CHECKING, destAcct);
         }
 
-        System.out.println(t);
+        /*if (!t.equals("")) {
+                t = "sp;" + t;
+        }
+	System.out.println(t);
+    	*/
     }
 }
