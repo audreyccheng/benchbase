@@ -65,7 +65,7 @@ public class WriteCheck extends Procedure {
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
-        boolean printT = false;
+        boolean printT = true;
         // First convert the custName to the custId
         long custId;
 
@@ -132,11 +132,11 @@ public class WriteCheck extends Procedure {
             }
         }
 
-	/*if (!t.equals("")) {
-                t = "wc;" + t;
-        }*/
-	if (printT) {
-        System.out.println(t);
+    if (printT) {
+        if (!t.equals("")) {
+	    t = "wc;" + t;
+	}
+	System.out.println(t);
     }
     }
 }

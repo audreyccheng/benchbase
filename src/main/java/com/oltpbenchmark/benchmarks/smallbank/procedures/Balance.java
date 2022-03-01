@@ -53,7 +53,7 @@ public class Balance extends Procedure {
 
     public double run(Connection conn, String custName) throws SQLException {
         String t = "";
-        boolean printT = false;
+        boolean printT = true;
 
         // First convert the acctName to the acctId
         long custId;
@@ -104,10 +104,10 @@ public class Balance extends Procedure {
             }
         }
 
-	/*if (!t.equals("")) {
-                t = "b;" + t;
-        }*/
     if (printT) {
+	if (!t.equals("")) {
+	    t = "b;" + t;
+	}
         System.out.println(t);
     }
 	return checkingBalance + savingsBalance;

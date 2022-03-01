@@ -55,7 +55,7 @@ public class DepositChecking extends Procedure {
 
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
-        boolean printT = false;
+        boolean printT = true;
 
         // First convert the custName to the custId
 
@@ -77,11 +77,11 @@ public class DepositChecking extends Procedure {
             int status = stmt1.executeUpdate();
             t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
         }
-	/*if (!t.equals("")) {
-                t = "dc;" + t;
-        }*/
     if (printT) {
-        System.out.println(t);
+        if (!t.equals("")) {
+	    t = "dc;" + t;
+	}
+	System.out.println(t);
     }
     }
 }
