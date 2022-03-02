@@ -56,6 +56,7 @@ public class DepositChecking extends Procedure {
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
         boolean printT = true;
+        boolean writes = false;
 
         // First convert the custName to the custId
 
@@ -75,7 +76,9 @@ public class DepositChecking extends Procedure {
         // Then update their checking balance
         try (PreparedStatement stmt1 = this.getPreparedStatement(conn, UpdateCheckingBalance, amount, custId)) {
             int status = stmt1.executeUpdate();
-            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
+            if (writes) {
+                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
+            }
         }
     if (printT) {
         if (!t.equals("")) {

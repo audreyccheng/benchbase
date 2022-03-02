@@ -61,6 +61,7 @@ public class TransactSavings extends Procedure {
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
         boolean printT = true;
+        boolean writes = false;
 
         // First convert the custName to the acctId
         long custId;
@@ -110,7 +111,9 @@ public class TransactSavings extends Procedure {
         // Then update their savings balance
         try (PreparedStatement stmt = this.getPreparedStatement(conn, UpdateSavingsBalance, amount, custId)) {
             int status = stmt.executeUpdate();
-            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId);
+            if (writes) {
+                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId);
+            }
         }
 
     if (printT) {

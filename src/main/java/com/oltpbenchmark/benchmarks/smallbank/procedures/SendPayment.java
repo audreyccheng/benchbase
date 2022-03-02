@@ -60,6 +60,7 @@ public class SendPayment extends Procedure {
     public void run(Connection conn, long sendAcct, long destAcct, double amount) throws SQLException {
         String t = "";
         boolean printT = true;
+        boolean writes = false;
 
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, sendAcct)) {
@@ -117,12 +118,16 @@ public class SendPayment extends Procedure {
         // Debt
         try (PreparedStatement updateStmt = this.getPreparedStatement(conn, UpdateCheckingBalance, amount * -1d, sendAcct)) {
             updateStmt.executeUpdate();
-            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, sendAcct);
+            if (writes) {
+                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, sendAcct);
+            }
         }
         // Credit
         try (PreparedStatement updateStmt = this.getPreparedStatement(conn, UpdateCheckingBalance, amount, destAcct)) {
             updateStmt.executeUpdate();
-            t += String.format(",%s:%d", SmallBankConstants.TABLENAME_CHECKING, destAcct);
+            if (writes) {
+                t += String.format(",%s:%d", SmallBankConstants.TABLENAME_CHECKING, destAcct);
+            }
         }
 
     if (printT) {

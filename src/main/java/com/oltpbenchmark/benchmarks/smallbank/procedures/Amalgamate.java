@@ -82,6 +82,7 @@ public class Amalgamate extends Procedure {
     public void run(Connection conn, long custId0, long custId1) throws SQLException {
         String t = "";
         boolean printT = true;
+        boolean writes = false;
 
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, custId0)) {
@@ -148,13 +149,17 @@ public class Amalgamate extends Procedure {
         // Update Balance Information
         int status;
         try (PreparedStatement updateStmt0 = this.getPreparedStatement(conn, ZeroCheckingBalance, custId0)) {
-            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId1);
+            if (writes) {
+                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId1);
+            }
             status = updateStmt0.executeUpdate();
         }
 
 
         try (PreparedStatement updateStmt1 = this.getPreparedStatement(conn, UpdateSavingsBalance, total, custId1)) {
-            t += String.format(",%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId1);
+            if (writes) {
+                t += String.format(",%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId1);
+            }
             status = updateStmt1.executeUpdate();
         }
 

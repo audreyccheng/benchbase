@@ -66,6 +66,7 @@ public class WriteCheck extends Procedure {
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
         boolean printT = true;
+        boolean writes = false;
         // First convert the custName to the custId
         long custId;
 
@@ -123,12 +124,16 @@ public class WriteCheck extends Procedure {
         if (total < amount) {
             try (PreparedStatement updateStmt = this.getPreparedStatement(conn, UpdateCheckingBalance, amount - 1, custId)) {
                 int status = updateStmt.executeUpdate();
-                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
+                if (writes) {
+                    t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
+                }
             }
         } else {
             try (PreparedStatement updateStmt = this.getPreparedStatement(conn, UpdateCheckingBalance, amount, custId)) {
                 int status = updateStmt.executeUpdate();
-                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
+                if (writes) {
+                    t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId);
+                }
             }
         }
 
