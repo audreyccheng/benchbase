@@ -48,6 +48,7 @@ package com.oltpbenchmark.benchmarks.voter.procedures;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
+import com.oltpbenchmark.benchmarks.voter.VoterConstants;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -85,6 +86,7 @@ public class Vote extends Procedure {
     );
 
     public long run(Connection conn, long voteId, long phoneNumber, int contestantNumber, long maxVotesPerPhoneNumber) throws SQLException {
+        String t = "";
 
         try (PreparedStatement ps = getPreparedStatement(conn, checkContestantStmt)) {
             ps.setInt(1, contestantNumber);
@@ -92,6 +94,7 @@ public class Vote extends Procedure {
                 if (!rs.next()) {
                     return ERR_INVALID_CONTESTANT;
                 }
+                t += String.format("%s:%d", VoterConstants.TABLENAME_CONTESTANTS, contestantNumber);
             }
         }
 
@@ -101,8 +104,10 @@ public class Vote extends Procedure {
             try (ResultSet rs = ps.executeQuery()) {
                 boolean hasVoterEnt = rs.next();
                 if (hasVoterEnt && rs.getLong(1) >= maxVotesPerPhoneNumber) {
+                    System.out.println(t);
                     return ERR_VOTER_OVER_VOTE_LIMIT;
                 }
+                t += String.format(",%s:%d", VoterConstants.TABLENAME_VOTES, phoneNumber);
             }
         }
 
@@ -118,6 +123,7 @@ public class Vote extends Procedure {
                 // but are tracked as legitimate instead of invalid, as old clients would mostly get
                 // it wrong and see all their transactions rejected).
                 state = rs.next() ? rs.getString(1) : "XX";
+                t += String.format(",%s:%d", VoterConstants.TABLENAME_LOCATIONS, (short) (phoneNumber / 10000000L));
             }
         }
 
@@ -128,6 +134,8 @@ public class Vote extends Procedure {
             ps.setInt(4, contestantNumber);
             ps.execute();
         }
+
+        System.out.println(t);
 
         // Set the return value to 0: successful vote
         return VOTE_SUCCESSFUL;
