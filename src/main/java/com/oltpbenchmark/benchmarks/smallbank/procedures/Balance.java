@@ -53,6 +53,7 @@ public class Balance extends Procedure {
 
     public double run(Connection conn, String custName) throws SQLException {
         String t = "";
+        boolean printT = true;
 
         // First convert the acctName to the acctId
         long custId;
@@ -73,7 +74,9 @@ public class Balance extends Procedure {
         try (PreparedStatement balStmt0 = this.getPreparedStatement(conn, GetSavingsBalance, custId)) {
             try (ResultSet balRes0 = balStmt0.executeQuery()) {
                 if (!balRes0.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_SAVINGS,
                             custId);
@@ -88,7 +91,9 @@ public class Balance extends Procedure {
         try (PreparedStatement balStmt1 = this.getPreparedStatement(conn, GetCheckingBalance, custId)) {
             try (ResultSet balRes1 = balStmt1.executeQuery()) {
                 if (!balRes1.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_CHECKING,
                             custId);
@@ -99,7 +104,12 @@ public class Balance extends Procedure {
             }
         }
 
+    if (printT) {
+	if (!t.equals("")) {
+	    t = "b;" + t;
+	}
         System.out.println(t);
-        return checkingBalance + savingsBalance;
+    }
+	return checkingBalance + savingsBalance;
     }
 }

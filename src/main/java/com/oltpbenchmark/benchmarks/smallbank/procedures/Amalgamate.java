@@ -44,7 +44,7 @@ public class Amalgamate extends Procedure {
 
     // 2013-05-05
     // In the original version of the benchmark, this is suppose to be a look up
-    // on the customer's name. We don't have fast implementation of replicated 
+    // on the customer's name. We don't have fast implementation of replicated
     // secondary indexes, so we'll just ignore that part for now.
     public final SQLStmt GetAccount = new SQLStmt(
             "SELECT * FROM " + SmallBankConstants.TABLENAME_ACCOUNTS +
@@ -81,6 +81,8 @@ public class Amalgamate extends Procedure {
 
     public void run(Connection conn, long custId0, long custId1) throws SQLException {
         String t = "";
+        boolean printT = true;
+        boolean writes = false;
 
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, custId0)) {
@@ -96,7 +98,9 @@ public class Amalgamate extends Procedure {
         try (PreparedStatement stmt1 = this.getPreparedStatement(conn, GetAccount, custId1)) {
             try (ResultSet r1 = stmt1.executeQuery()) {
                 if (!r1.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = "Invalid account '" + custId1 + "'";
                     throw new UserAbortException(msg);
                 }
@@ -109,7 +113,9 @@ public class Amalgamate extends Procedure {
         try (PreparedStatement balStmt0 = this.getPreparedStatement(conn, GetSavingsBalance, custId0)) {
             try (ResultSet balRes0 = balStmt0.executeQuery()) {
                 if (!balRes0.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_SAVINGS,
                             custId0);
@@ -124,7 +130,9 @@ public class Amalgamate extends Procedure {
         try (PreparedStatement balStmt1 = this.getPreparedStatement(conn, GetCheckingBalance, custId1)) {
             try (ResultSet balRes1 = balStmt1.executeQuery()) {
                 if (!balRes1.next()) {
-                    System.out.println(t);
+                    if (printT) {
+                        System.out.println(t);
+                    }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_CHECKING,
                             custId1);
@@ -141,16 +149,25 @@ public class Amalgamate extends Procedure {
         // Update Balance Information
         int status;
         try (PreparedStatement updateStmt0 = this.getPreparedStatement(conn, ZeroCheckingBalance, custId0)) {
-            t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId1);
+            if (writes) {
+                t += String.format(";%s:%d", SmallBankConstants.TABLENAME_CHECKING, custId1);
+            }
             status = updateStmt0.executeUpdate();
         }
 
 
         try (PreparedStatement updateStmt1 = this.getPreparedStatement(conn, UpdateSavingsBalance, total, custId1)) {
-            t += String.format(",%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId1);
+            if (writes) {
+                t += String.format(",%s:%d", SmallBankConstants.TABLENAME_SAVINGS, custId1);
+            }
             status = updateStmt1.executeUpdate();
         }
 
-        System.out.println(t);
+    if (printT) {
+        if (!t.equals("")) {
+	    t = "a;" + t;
+	}
+	System.out.println(t);
+    }
     }
 }
