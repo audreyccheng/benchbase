@@ -56,7 +56,7 @@ public class DepositChecking extends Procedure {
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
         boolean printT = true;
-        boolean writes = false;
+        boolean writes = true;
 
         // First convert the custName to the custId
 
@@ -65,7 +65,7 @@ public class DepositChecking extends Procedure {
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, custName)) {
             try (ResultSet r0 = stmt0.executeQuery()) {
                 if (!r0.next()) {
-                    String msg = "Invalid account '" + custName + "'";
+		    String msg = "Invalid account '" + custName + "'";
                     throw new UserAbortException(msg);
                 }
                 custId = r0.getLong(1);

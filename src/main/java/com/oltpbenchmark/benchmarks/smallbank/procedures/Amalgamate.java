@@ -82,7 +82,7 @@ public class Amalgamate extends Procedure {
     public void run(Connection conn, long custId0, long custId1) throws SQLException {
         String t = "";
         boolean printT = true;
-        boolean writes = false;
+        boolean writes = true;
 
         // Get Account Information
         try (PreparedStatement stmt0 = this.getPreparedStatement(conn, GetAccount, custId0)) {
@@ -114,7 +114,7 @@ public class Amalgamate extends Procedure {
             try (ResultSet balRes0 = balStmt0.executeQuery()) {
                 if (!balRes0.next()) {
                     if (printT) {
-                        System.out.println(t);
+//                        System.out.println(t);
                     }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_SAVINGS,
@@ -131,7 +131,7 @@ public class Amalgamate extends Procedure {
             try (ResultSet balRes1 = balStmt1.executeQuery()) {
                 if (!balRes1.next()) {
                     if (printT) {
-                        System.out.println(t);
+//                        System.out.println(t);
                     }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_CHECKING,

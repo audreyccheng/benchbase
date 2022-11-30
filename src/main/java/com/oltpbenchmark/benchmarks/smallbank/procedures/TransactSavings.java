@@ -61,7 +61,7 @@ public class TransactSavings extends Procedure {
     public void run(Connection conn, String custName, double amount) throws SQLException {
         String t = "";
         boolean printT = true;
-        boolean writes = false;
+        boolean writes = true;
 
         // First convert the custName to the acctId
         long custId;
@@ -85,7 +85,7 @@ public class TransactSavings extends Procedure {
             try (ResultSet result = stmt.executeQuery()) {
                 if (!result.next()) {
                     if (printT) {
-                        System.out.println(t);
+                        // System.out.println(t);
                     }
                     String msg = String.format("No %s for customer #%d",
                             SmallBankConstants.TABLENAME_SAVINGS,
@@ -100,7 +100,7 @@ public class TransactSavings extends Procedure {
         // Make sure that they have enough
         if (balance < 0) {
             if (printT) {
-                System.out.println(t);
+                // System.out.println(t);
             }
             String msg = String.format("Negative %s balance for customer #%d",
                     SmallBankConstants.TABLENAME_SAVINGS,

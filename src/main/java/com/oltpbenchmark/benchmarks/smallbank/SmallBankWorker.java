@@ -76,7 +76,7 @@ public class SmallBankWorker extends Worker<SmallBankBenchmark> {
     protected void generateCustIds(boolean needsTwoAccts) {
         for (int i = 0; i < this.custIdsBuffer.length; i++) {
             this.custIdsBuffer[i] = this.rng.nextLong();
-            System.out.println("Generated Customer ID: " + this.custIdsBuffer[i]);
+            // System.out.println("Generated Customer ID: " + this.custIdsBuffer[i]);
 
             // They can never be the same!
             if (i > 0 && this.custIdsBuffer[i - 1] == this.custIdsBuffer[i]) {
