@@ -31,7 +31,19 @@ public class UpdateItemTitle extends Procedure {
     );
 
     public void run(Connection conn, long iid, String title) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateItem)) {
+        String t = "";
+	boolean printT = true;
+	t += String.format("%s:%d", "item", iid);
+	if (printT) {
+		t = "b;" + t;
+		System.out.println(t);
+	}
+	t = String.format("%s:%d", "item", iid);
+	if (printT) {
+		t = "w;" + t;
+		System.out.println(t);
+	}
+	try (PreparedStatement stmt = this.getPreparedStatement(conn, updateItem)) {
             stmt.setString(1, title);
             stmt.setLong(2, iid);
             stmt.executeUpdate();

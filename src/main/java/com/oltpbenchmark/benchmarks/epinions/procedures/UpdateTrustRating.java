@@ -31,7 +31,19 @@ public class UpdateTrustRating extends Procedure {
     );
 
     public void run(Connection conn, long source_uid, long target_uid, int trust) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateTrust)) {
+        String t = "";
+	boolean printT = true;
+	t += String.format("%s:%d", "trust", source_uid);
+	if (printT) {
+		t = "d;" + t;
+		System.out.println(t);
+	}
+	t = String.format("%s:%d", "trust", source_uid);
+	if (printT) {
+		t = "w;" + t;
+		System.out.println(t);
+	}
+	try (PreparedStatement stmt = this.getPreparedStatement(conn, updateTrust)) {
             stmt.setInt(1, trust);
             stmt.setLong(2, source_uid);
             stmt.setLong(3, target_uid);

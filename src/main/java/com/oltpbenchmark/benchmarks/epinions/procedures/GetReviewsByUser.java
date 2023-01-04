@@ -33,13 +33,37 @@ public class GetReviewsByUser extends Procedure {
     );
 
     public void run(Connection conn, long uid) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, getReviewUser)) {
+        String t = "";
+	boolean printT = true;
+	int count = 0;
+	try (PreparedStatement stmt = this.getPreparedStatement(conn, getReviewUser)) {
             stmt.setLong(1, uid);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
-                    continue;
+                    if (count == 0) {
+			    t += String.format("%s:%d", "rating", r.getInt(1));
+		    } else {
+			    t += String.format(",%s:%d", "rating", r.getInt(1));
+		    }
+//		    t += String.format(",%s:%d", "rating", r.getInt(2));
+//		    t += String.format(",%s:%d", "rating", r.getInt(3));
+//		    if (r.getInt(4) != 0) {
+//			    t += String.format(",%s:%d", "rating", r.getInt(4));
+//		    }
+//		    if (r.getInt(5) != 0) {
+//			    t += String.format(",%s:%d", "rating", r.getInt(5));
+//		    }
+//		    t += String.format(",%s:%d", "useracct", r.getInt(6));
+//		    t += String.format(",%s:%d", "useracctu", r.getInt(6));
+			continue;
                 }
             }
         }
+	if (printT) {
+	if (t.length() > 0) {
+		t = "u;" + t;
+	}
+	System.out.println(t);
+	}
     }
 }

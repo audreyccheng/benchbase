@@ -31,7 +31,19 @@ public class UpdateReviewRating extends Procedure {
     );
 
     public void run(Connection conn, long iid, long uid, int rating) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateReview)) {
+        String t = "";
+	boolean printT = true;
+	t += String.format("%s:%d", "rating", iid);
+	if (printT) {
+		t = "c;" + t;
+		System.out.println(t);
+	}
+	t = String.format("%s:%d", "rating", iid);
+	if (printT) {
+		t = "w;" + t;
+		System.out.println(t);
+	}
+	try (PreparedStatement stmt = this.getPreparedStatement(conn, updateReview)) {
             stmt.setInt(1, rating);
             stmt.setLong(2, iid);
             stmt.setLong(3, uid);

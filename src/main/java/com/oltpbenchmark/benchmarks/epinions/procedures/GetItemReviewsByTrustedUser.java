@@ -37,11 +37,28 @@ public class GetItemReviewsByTrustedUser extends Procedure {
     );
 
     public void run(Connection conn, long iid, long uid) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, getReview)) {
+        String t = "";
+	boolean printT = true;
+	int count = 0;
+	try (PreparedStatement stmt = this.getPreparedStatement(conn, getReview)) {
             stmt.setLong(1, iid);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
-                    continue;
+                    if (count == 0) {
+			    t += String.format("%s:%d", "rating", r.getInt(1));
+			    count++;
+		    } else {
+			    t += String.format(",%s:%d", "rating", r.getInt(1));
+		    }
+//		    t += String.format(",%s:%d", "rating", r.getInt(2));
+//		    t += String.format(",%s:%d", "rating", r.getInt(3));
+//		    if (r.getInt(4) != 0) {
+//			    t += String.format(",%s:%d", "rating", r.getInt(4));
+//		    }
+//		    if (r.getInt(5) != 0) {
+//			    t += String.format(",%s:%d", "rating", r.getInt(5));
+//		    }
+	    	    continue;
                 }
             }
         }
@@ -49,10 +66,27 @@ public class GetItemReviewsByTrustedUser extends Procedure {
             stmt.setLong(1, uid);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
-                    continue;
+                    if (count == 0) {
+			    t += String.format("%s:%d", "trust", r.getInt(1));
+			    count++;
+		    } else {
+			    t += String.format(",%s:%d", "trust", r.getInt(1));
+		    }
+//		    t += String.format(",%s:%d", "trust", r.getInt(2));
+//		    t += String.format(",%s:%d", "trust", r.getInt(3));
+//		    if (r.getTimestamp(4) != null) {
+//			    t += String.format(",%s:%d", "trust", r.getTimestamp(4).getTime());
+//		    }
+		    continue;
                 }
             }
         }
+	if (printT) {
+	if (t.length() > 0) {
+		t = "t;" + t;
+	}
+	System.out.println(t);
+	}
     }
 
 }

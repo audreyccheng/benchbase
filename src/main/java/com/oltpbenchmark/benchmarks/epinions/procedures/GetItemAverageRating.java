@@ -31,14 +31,32 @@ public class GetItemAverageRating extends Procedure {
             "SELECT avg(rating) FROM review r WHERE r.i_id=?"
     );
 
+    public final SQLStmt getAllRating = new SQLStmt(
+            "SELECT r.u_id FROM review r WHERE r.i_id=?"
+    );
+
     public void run(Connection conn, long iid) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, getAverageRating)) {
+        String t = "";
+	boolean printT = true;
+	int count = 0;
+	try (PreparedStatement stmt = this.getPreparedStatement(conn, getAllRating)) {
             stmt.setLong(1, iid);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
-                    continue;
+                    if (count == 0) {
+			    t += String.format("%s:%d", "rating", r.getInt(1));
+		    } else {
+			    t += String.format(",%s:%d", "rating", r.getInt(1));
+		    }
+			continue;
                 }
             }
         }
+	if (printT) {
+	if (t.length() > 0) {
+		t = "r;" + t;
+	}
+	System.out.println(t);
+	}
     }
 }

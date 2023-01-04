@@ -31,16 +31,35 @@ public class GetAverageRatingByTrustedUser extends Procedure {
             "SELECT avg(rating) FROM review r, trust t WHERE r.u_id=t.target_u_id AND r.i_id=? AND t.source_u_id=?"
     );
 
+    public final SQLStmt getAllRating = new SQLStmt(
+            "SELECT r.u_id FROM review r, trust t WHERE r.u_id=t.target_u_id AND r.i_id=? AND t.source_u_id=?"
+    );
+
     public void run(Connection conn, long iid, long uid) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, getAverageRating)) {
+        String t = "";
+	boolean printT = true;
+	int count = 0;
+	    try (PreparedStatement stmt = this.getPreparedStatement(conn, getAllRating)) { //getAverageRating)) {
             stmt.setLong(1, iid);
             stmt.setLong(2, uid);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
-                    continue;
+		    if (count == 0) {
+			t += String.format("%s:%d", "rating", r.getInt(1));
+			count++;
+		    } else {
+			t += String.format(",%s:%d", "rating", r.getInt(1));
+		    }
+		    continue;
                 }
             }
         }
+	if (printT) {
+	if (t.length() > 0) {
+	    t = "a;" + t;
+	}
+        System.out.println(t);
+    }
     }
 
 }

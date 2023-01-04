@@ -23,6 +23,7 @@ import com.oltpbenchmark.api.SQLStmt;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 public class GetReviewItemById extends Procedure {
@@ -33,14 +34,40 @@ public class GetReviewItemById extends Procedure {
     );
 
     public void run(Connection conn, long iid) throws SQLException {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, getReviewItem)) {
+        String t = "";
+	boolean printT = true;
+	int count = 0;
+	try (PreparedStatement stmt = this.getPreparedStatement(conn, getReviewItem)) {
             stmt.setLong(1, iid);
             try (ResultSet r = stmt.executeQuery()) {
                 while (r.next()) {
-                    continue;
+                    if (count == 0) {
+			    t += String.format("%s:%d", "rating", r.getInt(1));
+			    count++;
+		    } else {
+			    t += String.format(",%s:%d", "rating", r.getInt(1));
+		    }
+		    //System.out.println(r.getMetaData().getColumnCount());
+//		    t += String.format(",%s:%d", "rating", r.getInt(2));
+//		    t += String.format(",%s:%d", "rating", r.getInt(3));
+//		    if (r.getInt(4) != 0) {
+//			    t += String.format(",%s:%d", "rating", r.getInt(4));
+//		    }
+//		    if (r.getInt(5) != 0) {
+//			    t += String.format(",%s:%d", "rating", r.getInt(5));
+//		    }
+//		    t += String.format(",%s:%d", "item", r.getInt(6));
+//		    t += String.format(",%s:%d", "itemt", r.getInt(6));
+			continue;
                 }
             }
         }
+	if (printT) {
+	if (t.length() > 0) {
+		t = "i;" + t;
+	}
+	System.out.println(t);
+	}
     }
 
 }
