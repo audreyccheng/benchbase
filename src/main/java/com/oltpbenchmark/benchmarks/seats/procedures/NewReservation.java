@@ -132,8 +132,8 @@ public class NewReservation extends Procedure {
                 airline_id = results.getLong(1);
                 seats_left = results.getLong(2);
 
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ",";
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_AIRLINE, airline_id) + ";";
+                t += String.format("r-%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ",";
+                t += String.format("r-%s:%d", SEATSConstants.TABLENAME_AIRLINE, airline_id) + ";";
             }
         }
         if (seats_left <= 0) {
@@ -147,7 +147,7 @@ public class NewReservation extends Procedure {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
                 if (found) {
-                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
+                    t += String.format("r-%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
                 }
             }
         }
@@ -162,7 +162,7 @@ public class NewReservation extends Procedure {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
                 if (found) {
-                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
+                    t += String.format("r-%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
                 }
             }
         }
@@ -176,7 +176,7 @@ public class NewReservation extends Procedure {
             try (ResultSet results = preparedStatement.executeQuery()) {
                 found = results.next();
                 if (found) {
-                    t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
+                    t += String.format("r-%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
                 }
             }
         }
@@ -198,6 +198,7 @@ public class NewReservation extends Procedure {
                 preparedStatement.setLong(6 + i, attrs[i]);
             }
             updated = preparedStatement.executeUpdate();
+            t += String.format("w-%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
         }
         if (updated != 1) {
             String msg = String.format("Failed to add reservation for flight #%d - Inserted %d records for InsertReservation", f_id, updated);
@@ -208,7 +209,7 @@ public class NewReservation extends Procedure {
 
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, UpdateFlight, f_id)) {
             updated = preparedStatement.executeUpdate();
-            t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
+            t += String.format("w-%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
         }
         if (updated != 1) {
             String msg = String.format("Failed to add reservation for flight #%d - Updated %d records for UpdateFlight", f_id, updated);
@@ -219,7 +220,7 @@ public class NewReservation extends Procedure {
 
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, UpdateCustomer, attrs[0], attrs[1], attrs[2], attrs[3], c_id)) {
             updated = preparedStatement.executeUpdate();
-            t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
+            t += String.format("w-%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
         }
         if (updated != 1) {
             String msg = String.format("Failed to add reservation for flight #%d - Updated %d records for UpdateCustomer", f_id, updated);
@@ -228,10 +229,10 @@ public class NewReservation extends Procedure {
             throw new UserAbortException(ErrorType.VALIDITY_ERROR + " " + msg);
         }
 
-        // We don't care if we updated FrequentFlyer 
+        // We don't care if we updated FrequentFlyer
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, UpdateFrequentFlyer, attrs[4], attrs[5], attrs[6], attrs[7], c_id, airline_id)) {
             updated = preparedStatement.executeUpdate();
-            t += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, airline_id) + ";";
+            t += String.format("w-%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, airline_id) + ";";
         }
 
         LOG.debug(String.format("Reserved new seat on flight %d for customer %d [seatsLeft=%d]",
