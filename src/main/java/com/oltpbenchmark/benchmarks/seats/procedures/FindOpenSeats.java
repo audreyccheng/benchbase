@@ -93,7 +93,7 @@ public class FindOpenSeats extends Procedure {
         try (PreparedStatement f_stmt = this.getPreparedStatement(conn, GetFlight)) {
             f_stmt.setLong(1, f_id);
             try (ResultSet f_results = f_stmt.executeQuery()) {
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
+                t += String.format("r-%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
                 f_results.next();
 
                 // long status = results[0].getLong(0);
@@ -125,7 +125,7 @@ public class FindOpenSeats extends Procedure {
                     int seatnum = s_results.getInt(3);
                     long r_c_id = s_results.getLong(2);
 
-                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, r_c_id, f_id) + ",";
+                    t += String.format("r-%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, r_c_id, f_id) + ",";
 
                     LOG.debug(String.format("Reserved Seat: fid %d / rid %d / seat %d", f_id, r_id, seatnum));
 

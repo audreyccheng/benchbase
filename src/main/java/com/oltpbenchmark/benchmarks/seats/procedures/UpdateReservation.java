@@ -91,7 +91,7 @@ public class UpdateReservation extends Procedure {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
                 if (found) {
-                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
+                    t += String.format("r-%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), results.getLong(2), f_id) + ";";
                 }
             }
         }
@@ -107,7 +107,7 @@ public class UpdateReservation extends Procedure {
             try (ResultSet results = stmt.executeQuery()) {
                 found = results.next();
                 if (found) {
-                    t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), c_id, f_id) + ";";
+                    t += String.format("r-%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, results.getLong(1), c_id, f_id) + ";";
                 }
             }
         }
@@ -122,7 +122,7 @@ public class UpdateReservation extends Procedure {
         int updated;
         try (PreparedStatement stmt = this.getPreparedStatement(conn, ReserveSeats[(int) attr_idx], seatnum, attr_val, r_id, c_id, f_id)) {
             updated = stmt.executeUpdate();
-            t += String.format("%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, c_id, f_id) + ";";
+            t += String.format("w-%s:%d:%d:%d", SEATSConstants.TABLENAME_RESERVATION, r_id, c_id, f_id) + ";";
         }
 
         System.out.println(t);

@@ -79,7 +79,7 @@ public class FindFlights extends Procedure {
                             long aid = nearby_results.getLong(1);
                             double aid_distance = nearby_results.getDouble(2);
 
-                            t += String.format("%s:%d:%d", SEATSConstants.TABLENAME_AIRPORT_DISTANCE, depart_aid, aid) + ",";
+                            t += String.format("r-%s:%d:%d", SEATSConstants.TABLENAME_AIRPORT_DISTANCE, depart_aid, aid) + ",";
 
                             LOG.debug("DEPART NEARBY: {} distance={} miles", aid, aid_distance);
 
@@ -123,8 +123,8 @@ public class FindFlights extends Procedure {
                                 long f_depart_airport = flightResults.getLong(4);
                                 long f_arrive_airport = flightResults.getLong(6);
 
-                                flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, flightResults.getLong(1)) + ",";
-                                flightResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRLINE, flightResults.getLong(2)) + ",";
+                                flightResultsTrace += String.format("r-%s:%d", SEATSConstants.TABLENAME_FLIGHT, flightResults.getLong(1)) + ",";
+                                flightResultsTrace += String.format("r-%s:%d", SEATSConstants.TABLENAME_AIRLINE, flightResults.getLong(2)) + ",";
 
                                 Object[] row = new Object[13];
                                 int r = 0;
@@ -138,8 +138,8 @@ public class FindFlights extends Procedure {
                                 try (ResultSet ai_results = ai_stmt.executeQuery()) {
                                     ai_results.next();
 
-                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_depart_airport) + ",";
-                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
+                                    airportResultsTrace += String.format("r-%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_depart_airport) + ",";
+                                    airportResultsTrace += String.format("r-%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
                                     airportResultsTrace += ";";
 
                                     row[r++] = flightResults.getDate(5);    // [03] DEPART_TIME
@@ -154,8 +154,8 @@ public class FindFlights extends Procedure {
                                 try (ResultSet ai_results = ai_stmt.executeQuery()) {
                                     ai_results.next();
 
-                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_arrive_airport) + ",";
-                                    airportResultsTrace += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
+                                    airportResultsTrace += String.format("r-%s:%d", SEATSConstants.TABLENAME_AIRPORT, f_arrive_airport) + ",";
+                                    airportResultsTrace += String.format("r-%s:%d", SEATSConstants.TABLENAME_COUNTRY, ai_results.getInt(6)) + ",";
                                     airportResultsTrace += ";";
 
                                     row[r++] = flightResults.getDate(7);    // [08] ARRIVE_TIME

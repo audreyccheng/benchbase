@@ -74,14 +74,14 @@ public class UpdateCustomer extends Procedure {
 
     public void run(Connection conn, Long c_id, String c_id_str, Long update_ff, long attr0, long attr1) throws SQLException {
         String t = "";
-    
+
         // Use C_ID_STR to get C_ID
         if (c_id == null) {
             try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, GetCustomerIdStr, c_id_str)) {
                 try (ResultSet rs = preparedStatement.executeQuery()) {
                     if (rs.next()) {
                         c_id = rs.getLong(1);
-                        t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
+                        t += String.format("r-%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
                     } else {
                         throw new UserAbortException(String.format("No Customer information record found for string '%s'", c_id_str));
                     }
@@ -98,7 +98,7 @@ public class UpdateCustomer extends Procedure {
                 }
 
                 base_airport = rs.getLong(3);
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
+                t += String.format("r-%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
             }
         }
 
@@ -107,8 +107,8 @@ public class UpdateCustomer extends Procedure {
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, GetBaseAirport, base_airport)) {
             try (ResultSet airport_results = preparedStatement.executeQuery()) {
                 airport_results.next();
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_AIRPORT, base_airport) + ",";
-                t += String.format("%s:%d", SEATSConstants.TABLENAME_COUNTRY, airport_results.getInt(1)) + ",;";
+                t += String.format("r-%s:%d", SEATSConstants.TABLENAME_AIRPORT, base_airport) + ",";
+                t += String.format("r-%s:%d", SEATSConstants.TABLENAME_COUNTRY, airport_results.getInt(1)) + ",;";
             }
         }
 
@@ -122,10 +122,10 @@ public class UpdateCustomer extends Procedure {
                     String ff_updates_trace = "";
                     while (ff_results.next()) {
                         ff_al_id = ff_results.getLong(2);
-                        ff_results_trace += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ",";
+                        ff_results_trace += String.format("r-%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ",";
                         try (PreparedStatement updateStatement = this.getPreparedStatement(conn, UpdatFrequentFlyers, attr0, attr1, c_id, ff_al_id)) {
                             updateStatement.executeUpdate();
-                            ff_updates_trace += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ";";
+                            ff_updates_trace += String.format("w-%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, ff_al_id) + ";";
                         }
                     }
                     t += ff_results_trace + ";";
@@ -138,7 +138,7 @@ public class UpdateCustomer extends Procedure {
         int updated;
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, UpdateCustomer, attr0, attr1, c_id)) {
             updated = preparedStatement.executeUpdate();
-            t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
+            t += String.format("w-%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
         }
 
         System.out.println(t);
