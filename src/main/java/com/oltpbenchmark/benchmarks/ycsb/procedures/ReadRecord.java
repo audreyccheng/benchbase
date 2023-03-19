@@ -35,6 +35,8 @@ public class ReadRecord extends Procedure {
 
     //FIXME: The value in ysqb is a byteiterator
     public void run(Connection conn, int keyname, String[] results) throws SQLException {
+        String t = "";
+
         try (PreparedStatement stmt = this.getPreparedStatement(conn, readStmt)) {
             stmt.setInt(1, keyname);
             try (ResultSet r = stmt.executeQuery()) {
@@ -44,6 +46,7 @@ public class ReadRecord extends Procedure {
                     }
                 }
             }
+            t += String.format("r-%d", keyname) + ";";
         }
     }
 

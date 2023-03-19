@@ -33,12 +33,14 @@ public class InsertRecord extends Procedure {
 
     // FIXME: The value in ysqb is a byteiterator
     public void run(Connection conn, int keyname, String[] vals) throws SQLException {
+        String t = "";
         try (PreparedStatement stmt = this.getPreparedStatement(conn, this.insertStmt)) {
             stmt.setInt(1, keyname);
             for (int i = 0; i < vals.length; i++) {
                 stmt.setString(i + 2, vals[i]);
             }
             stmt.executeUpdate();
+            t += String.format("w-%d", keyname) + ";";
         }
     }
 

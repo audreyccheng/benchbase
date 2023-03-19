@@ -34,6 +34,7 @@ public class UpdateRecord extends Procedure {
     );
 
     public void run(Connection conn, int keyname, String[] vals) throws SQLException {
+        String t = "";
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
 
             stmt.setInt(11, keyname);
@@ -41,7 +42,7 @@ public class UpdateRecord extends Procedure {
                 stmt.setString(i + 1, vals[i]);
             }
             stmt.executeUpdate();
+            t += String.format("w-%d", keyname) + ";";
         }
     }
 }
-

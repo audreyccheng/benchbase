@@ -36,6 +36,7 @@ public class ScanRecord extends Procedure {
 
     //FIXME: The value in ysqb is a byteiterator
     public void run(Connection conn, int start, int count, List<String[]> results) throws SQLException {
+        String t = "";
         try (PreparedStatement stmt = this.getPreparedStatement(conn, scanStmt)) {
             stmt.setInt(1, start);
             stmt.setInt(2, start + count);
@@ -47,6 +48,9 @@ public class ScanRecord extends Procedure {
                     }
                     results.add(data);
                 }
+            }
+            for (int i = start; i <= start + count; i++) {
+                t += String.format("r-%d", i) + ";";
             }
         }
     }

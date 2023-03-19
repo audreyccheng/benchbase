@@ -33,9 +33,11 @@ public class DeleteRecord extends Procedure {
 
     //FIXME: The value in ysqb is a byteiterator
     public void run(Connection conn, int keyname) throws SQLException {
+        String t = "";
         try (PreparedStatement stmt = this.getPreparedStatement(conn, deleteStmt)) {
             stmt.setInt(1, keyname);
             stmt.executeUpdate();
+            t += String.format("w-%d", keyname) + ";";
         }
     }
 

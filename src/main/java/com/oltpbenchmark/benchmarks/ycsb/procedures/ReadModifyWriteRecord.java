@@ -39,6 +39,7 @@ public class ReadModifyWriteRecord extends Procedure {
 
     //FIXME: The value in ysqb is a byteiterator
     public void run(Connection conn, int keyname, String[] fields, String[] results) throws SQLException {
+        String t = "";
 
         // Fetch it!
         try (PreparedStatement stmt = this.getPreparedStatement(conn, selectStmt)) {
@@ -50,8 +51,9 @@ public class ReadModifyWriteRecord extends Procedure {
                     }
                 }
             }
-
+            t += String.format("r-%d", keyname) + ";";
         }
+
 
         // Update that mofo
         try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
@@ -61,6 +63,7 @@ public class ReadModifyWriteRecord extends Procedure {
                 stmt.setString(i + 1, fields[i]);
             }
             stmt.executeUpdate();
+            t += String.format("w-%d", keyname) + ";";
         }
 
     }
