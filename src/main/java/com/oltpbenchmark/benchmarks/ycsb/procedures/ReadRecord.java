@@ -48,6 +48,7 @@ public class ReadRecord extends Procedure {
             }
             t += String.format("r-%d", keyname) + ";";
         }
+        System.out.println(t);
     }
 
 }

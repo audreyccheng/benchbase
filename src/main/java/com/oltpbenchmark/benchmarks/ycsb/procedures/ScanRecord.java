@@ -52,6 +52,7 @@ public class ScanRecord extends Procedure {
             for (int i = start; i <= start + count; i++) {
                 t += String.format("r-%d", i) + ";";
             }
+            System.out.println(t);
         }
     }
 }

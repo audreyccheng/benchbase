@@ -44,5 +44,6 @@ public class UpdateRecord extends Procedure {
             stmt.executeUpdate();
             t += String.format("w-%d", keyname) + ";";
         }
+        System.out.println(t);
     }
 }
