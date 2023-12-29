@@ -72,16 +72,24 @@ public class UpdateCustomer extends Procedure {
                     "   AND FF_AL_ID = ? "
     );
 
+<<<<<<< HEAD
     public void run(Connection conn, Long c_id, String c_id_str, Long update_ff, long attr0, long attr1) throws SQLException {
         String t = "";
     
+=======
+    public void run(Connection conn, String c_id, String c_id_str, Long update_ff, long attr0, long attr1) throws SQLException {
+>>>>>>> cdfdd343f33723e5b740d1febe4849b8d83b3996
         // Use C_ID_STR to get C_ID
         if (c_id == null) {
             try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, GetCustomerIdStr, c_id_str)) {
                 try (ResultSet rs = preparedStatement.executeQuery()) {
                     if (rs.next()) {
+<<<<<<< HEAD
                         c_id = rs.getLong(1);
                         t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
+=======
+                        c_id = rs.getString(1);
+>>>>>>> cdfdd343f33723e5b740d1febe4849b8d83b3996
                     } else {
                         throw new UserAbortException(String.format("No Customer information record found for string '%s'", c_id_str));
                     }
@@ -93,8 +101,12 @@ public class UpdateCustomer extends Procedure {
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, GetCustomer, c_id)) {
             try (ResultSet rs = preparedStatement.executeQuery()) {
                 if (!rs.next()) {
+<<<<<<< HEAD
                     System.out.println(t);
                     throw new UserAbortException(String.format("No Customer information record found for id '%d'", c_id));
+=======
+                    throw new UserAbortException(String.format("No Customer information record found for id '%s'", c_id));
+>>>>>>> cdfdd343f33723e5b740d1febe4849b8d83b3996
                 }
 
                 base_airport = rs.getLong(3);
@@ -143,7 +155,7 @@ public class UpdateCustomer extends Procedure {
 
         System.out.println(t);
         if (updated != 1) {
-            String msg = String.format("Failed to update customer #%d - Updated %d records", c_id, updated);
+            String msg = String.format("Failed to update customer #%s - Updated %d records", c_id, updated);
             LOG.warn(msg);
             throw new UserAbortException(ErrorType.VALIDITY_ERROR + " " + msg);
         }

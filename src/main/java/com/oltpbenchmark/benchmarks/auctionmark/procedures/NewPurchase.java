@@ -138,7 +138,7 @@ public class NewPurchase extends Procedure {
     // -----------------------------------------------------------------
 
     public Object[] run(Connection conn, Timestamp[] benchmarkTimes,
-                        long item_id, long seller_id, long ip_id, double buyer_credit) throws SQLException {
+                        String item_id, String seller_id, String ip_id, double buyer_credit) throws SQLException {
         final Timestamp currentTime = AuctionMarkUtil.getProcTimestamp(benchmarkTimes);
         String t = "";
         int rid = 0;
@@ -200,6 +200,7 @@ public class NewPurchase extends Procedure {
                 i_status = ItemStatus.CLOSED;
                 ib_id = results.getLong(col++);
                 ib_buyer_id = results.getLong(col++);
+<<<<<<< HEAD
                 u_balance = results.getDouble(col++);
                 long ib_i_id = results.getLong(col++);
                 long ib_u_id = results.getLong(col++);
@@ -208,13 +209,16 @@ public class NewPurchase extends Procedure {
                 t += "," + String.format("%d-%s:%d:%d-%d", getItemMaxBidRid2, AuctionMarkConstants.TABLENAME_ITEM_MAX_BID, item_id, seller_id, getItemRid);
                 t += "," + String.format("%d-%s:%d:%d:%d-%d", getItemBidRid, AuctionMarkConstants.TABLENAME_ITEM_BID, ib_id, ib_i_id, ib_u_id, getItemMaxBidRid2);
                 t += "," + String.format("%d-%s:%d-%d", getBuyerRid, AuctionMarkConstants.TABLENAME_USERACCT, ib_buyer_id, getItemBidRid);
+=======
+                u_balance = results.getDouble(col);
+>>>>>>> cdfdd343f33723e5b740d1febe4849b8d83b3996
             }
         }
 
         // Make sure that the buyer has enough money to cover this charge
         // We can add in a credit for the buyer's account
         if (i_current_price > (buyer_credit + u_balance)) {
-            String msg = String.format("Buyer #%d does not have enough money in account to purchase Item #%d" +
+            String msg = String.format("Buyer #%d does not have enough money in account to purchase Item #%s" +
                             "[maxBid=%.2f, balance=%.2f, credit=%.2f]",
                     ib_buyer_id, item_id, i_current_price, u_balance, buyer_credit);
             throw new UserAbortException(msg);

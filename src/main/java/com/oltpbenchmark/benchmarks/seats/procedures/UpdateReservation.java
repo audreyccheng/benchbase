@@ -82,8 +82,13 @@ public class UpdateReservation extends Procedure {
             ReserveSeat3,
     };
 
+<<<<<<< HEAD
     public void run(Connection conn, long r_id, long f_id, long c_id, long seatnum, long attr_idx, long attr_val) throws SQLException {
         String t = "";
+=======
+    public void run(Connection conn, long r_id, String f_id, String c_id, long seatnum, long attr_idx, long attr_val) throws SQLException {
+
+>>>>>>> cdfdd343f33723e5b740d1febe4849b8d83b3996
         boolean found;
 
         // Check if Seat is Available
@@ -99,7 +104,7 @@ public class UpdateReservation extends Procedure {
         if (found) {
             System.out.println(t);
             throw new UserAbortException(ErrorType.SEAT_ALREADY_RESERVED +
-                    String.format(" Seat %d is already reserved on flight #%d", seatnum, f_id));
+                    String.format(" Seat %d is already reserved on flight #%s", seatnum, f_id));
         }
 
         // Check if the Customer already has a seat on this flight
@@ -115,7 +120,7 @@ public class UpdateReservation extends Procedure {
         if (!found) {
             System.out.println(t);
             throw new UserAbortException(ErrorType.CUSTOMER_ALREADY_HAS_SEAT +
-                    String.format(" Customer %d does not have an existing reservation on flight #%d", c_id, f_id));
+                    String.format(" Customer %s does not have an existing reservation on flight #%s", c_id, f_id));
         }
 
         // Update the seat reservation for the customer
@@ -127,13 +132,13 @@ public class UpdateReservation extends Procedure {
 
         System.out.println(t);
         if (updated != 1) {
-            String msg = String.format("Failed to update reservation on flight %d for customer #%d - Updated %d records", f_id, c_id, updated);
+            String msg = String.format("Failed to update reservation on flight %s for customer #%s - Updated %d records", f_id, c_id, updated);
                 LOG.warn(msg);
             throw new UserAbortException(ErrorType.VALIDITY_ERROR + " " + msg);
         }
 
 
-            LOG.debug(String.format("Updated reservation on flight %d for customer %d", f_id, c_id));
+            LOG.debug(String.format("Updated reservation on flight %s for customer %s", f_id, c_id));
 
     }
 }

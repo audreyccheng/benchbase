@@ -114,8 +114,12 @@ public class NewReservation extends Procedure {
                     "   ? " +   // R_ATTR08
                     ")");
 
+<<<<<<< HEAD
     public void run(Connection conn, long r_id, long c_id, long f_id, long seatnum, double price, long[] attrs) throws SQLException {
         String t = "";
+=======
+    public void run(Connection conn, long r_id, String c_id, String f_id, long seatnum, double price, long[] attrs) throws SQLException {
+>>>>>>> cdfdd343f33723e5b740d1febe4849b8d83b3996
         boolean found;
 
         long airline_id;
@@ -127,7 +131,7 @@ public class NewReservation extends Procedure {
                 found = results.next();
                 if (!found) {
                     throw new UserAbortException(ErrorType.INVALID_FLIGHT_ID +
-                            String.format(" Invalid flight #%d", f_id));
+                            String.format(" Invalid flight #%s", f_id));
                 }
                 airline_id = results.getLong(1);
                 seats_left = results.getLong(2);
@@ -139,7 +143,7 @@ public class NewReservation extends Procedure {
         if (seats_left <= 0) {
             System.out.println(t);
             throw new UserAbortException(ErrorType.NO_MORE_SEATS +
-                    String.format(" No more seats available for flight #%d", f_id));
+                    String.format(" No more seats available for flight #%s", f_id));
         }
 
         // Check if Seat is Available
@@ -154,7 +158,7 @@ public class NewReservation extends Procedure {
         if (found) {
             System.out.println(t);
             throw new UserAbortException(ErrorType.SEAT_ALREADY_RESERVED +
-                    String.format(" Seat %d is already reserved on flight #%d", seatnum, f_id));
+                    String.format(" Seat %d is already reserved on flight #%s", seatnum, f_id));
         }
 
         // Check if the Customer already has a seat on this flight
@@ -169,7 +173,7 @@ public class NewReservation extends Procedure {
         if (found) {
             System.out.println(t);
             throw new UserAbortException(ErrorType.CUSTOMER_ALREADY_HAS_SEAT +
-                    String.format(" Customer %d already owns on a reservations on flight #%d", c_id, f_id));
+                    String.format(" Customer %s already owns on a reservations on flight #%s", c_id, f_id));
         }
         // Get Customer Information
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, GetCustomer, c_id)) {
@@ -183,15 +187,15 @@ public class NewReservation extends Procedure {
         if (!found) {
             System.out.println(t);
             throw new UserAbortException(ErrorType.INVALID_CUSTOMER_ID +
-                    String.format(" Invalid customer id: %d / %s", c_id, new CustomerId(c_id)));
+                    String.format(" Invalid customer id: %s / %s", c_id, new CustomerId(c_id)));
         }
 
         int updated;
 
         try (PreparedStatement preparedStatement = this.getPreparedStatement(conn, InsertReservation)) {
             preparedStatement.setLong(1, r_id);
-            preparedStatement.setLong(2, c_id);
-            preparedStatement.setLong(3, f_id);
+            preparedStatement.setString(2, c_id);
+            preparedStatement.setString(3, f_id);
             preparedStatement.setLong(4, seatnum);
             preparedStatement.setDouble(5, price);
             for (int i = 0; i < attrs.length; i++) {
@@ -200,7 +204,7 @@ public class NewReservation extends Procedure {
             updated = preparedStatement.executeUpdate();
         }
         if (updated != 1) {
-            String msg = String.format("Failed to add reservation for flight #%d - Inserted %d records for InsertReservation", f_id, updated);
+            String msg = String.format("Failed to add reservation for flight #%s - Inserted %d records for InsertReservation", f_id, updated);
             LOG.warn(msg);
             System.out.println(t);
             throw new UserAbortException(ErrorType.VALIDITY_ERROR + " " + msg);
@@ -211,7 +215,7 @@ public class NewReservation extends Procedure {
             t += String.format("%s:%d", SEATSConstants.TABLENAME_FLIGHT, f_id) + ";";
         }
         if (updated != 1) {
-            String msg = String.format("Failed to add reservation for flight #%d - Updated %d records for UpdateFlight", f_id, updated);
+            String msg = String.format("Failed to add reservation for flight #%s - Updated %d records for UpdateFlight", f_id, updated);
             LOG.warn(msg);
             System.out.println(t);
             throw new UserAbortException(ErrorType.VALIDITY_ERROR + " " + msg);
@@ -222,7 +226,7 @@ public class NewReservation extends Procedure {
             t += String.format("%s:%d", SEATSConstants.TABLENAME_CUSTOMER, c_id) + ";";
         }
         if (updated != 1) {
-            String msg = String.format("Failed to add reservation for flight #%d - Updated %d records for UpdateCustomer", f_id, updated);
+            String msg = String.format("Failed to add reservation for flight #%s - Updated %d records for UpdateCustomer", f_id, updated);
             LOG.warn(msg);
             System.out.println(t);
             throw new UserAbortException(ErrorType.VALIDITY_ERROR + " " + msg);
@@ -234,7 +238,12 @@ public class NewReservation extends Procedure {
             t += String.format("%s:%d:%d", SEATSConstants.TABLENAME_FREQUENT_FLYER, c_id, airline_id) + ";";
         }
 
+<<<<<<< HEAD
         LOG.debug(String.format("Reserved new seat on flight %d for customer %d [seatsLeft=%d]",
+=======
+
+        LOG.debug(String.format("Reserved new seat on flight %s for customer %s [seatsLeft=%d]",
+>>>>>>> cdfdd343f33723e5b740d1febe4849b8d83b3996
                 f_id, c_id, seats_left - 1));
         System.out.println(t);
     }
